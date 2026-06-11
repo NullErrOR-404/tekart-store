@@ -1,0 +1,6 @@
+id,name,slug,description,icon,cover_image,priority
+ea6bf464-e90f-488f-b98a-78b084683601,"Fashion Accessories",fashion-accessories,"Curated lifestyle accents including bracelets caps scarfs and smart styling additions.",🕶️,"https://images.unsplash.com/photo-1576053139778-7e32f2ae3cf4?w=800&auto=format&fit=crop&q=80",1
+ea6bf464-e90f-488f-b98a-78b084683602,"Electronics & Accessories",electronics,"Smart utilities and devices designed for modern living.",⚡,"https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800&auto=format&fit=crop&q=80",2
+ea6bf464-e90f-488f-b98a-78b084683603,"Perfumes",perfumes,"Luxurious olfactory blends that define elegance.",✨,"https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&auto=format&fit=crop&q=80",3
+ea6bf464-e90f-488f-b98a-78b084683604,"Deodorants",deodorants,"Fresh and energetic roll-ons and sprays for active protection.",🍃,"https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800&auto=format&fit=crop&q=80",4
+ea6bf464-e90f-488f-b98a-78b084683605,"Cosmetics",cosmetics,"Organic and dermatologically tested beauty enhancements.",💄,"https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&auto=format&fit=crop&q=80",5

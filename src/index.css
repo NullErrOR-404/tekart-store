@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Syne', sans-serif;
+  
+  --color-tk-blue-deep: #1832B8;
+  --color-tk-blue-mid: #2D5BE3;
+  --color-tk-blue-bright: #4D8FFF;
+  --color-tk-blue-light: #EEF2FF;
+  --color-tk-blue-pale: #F5F7FF;
+  --color-tk-text-primary: #0F0F12;
+  --color-tk-text-secondary: #5A5F7A;
+  --color-tk-text-tertiary: #9BA0B8;
+  --color-tk-bg: #F5F7FF;
+  --color-tk-surface: #FFFFFF;
+  --color-tk-surface-2: #EEF2FF;
+  --color-tk-border: rgba(24, 50, 184, 0.10);
+  --color-tk-border-strong: rgba(24, 50, 184, 0.20);
+  --color-tk-wa: #25D366;
+  --color-tk-wa-dark: #1DA851;
+  
+  --radius-tk-chip: 4px;
+  --radius-tk-input: 8px;
+  --radius-tk-card: 16px;
+  --radius-tk-modal: 24px;
+}
+
+:root {
+  background-color: var(--color-tk-bg);
+  color: var(--color-tk-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--color-tk-bg);
+  color: var(--color-tk-text-primary);
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-tk-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-tk-border-strong);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-tk-blue-mid);
+}
+
+/* Hide scrollbars for categories and panels while keeping scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism utility */
+.tk-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-tk-border);
+}
+
+/* Pulse animation for skeleton */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .4;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
