@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
           {/* Right: Actions */}
           <div className="flex items-center gap-2 z-20">
             {/* Theme Toggle Dropdown */}
-            <div className="relative group">
+            <div className="hidden sm:block relative group">
               <motion.button
                 whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.95 }}

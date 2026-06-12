@@ -9,7 +9,7 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ onSearchOpen, onExploreOpen }) => {
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-tk-border h-[60px] pb-safe flex items-center justify-around shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-tk-surface border-t border-tk-border h-[60px] pb-safe flex items-center justify-around shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       {/* Home */}
       <NavLink
         to="/"
