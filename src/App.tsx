@@ -44,10 +44,25 @@ const PublicLayout = () => {
     }
   }, [location.pathname]);
 
+  // If path is exactly /collection, open collection drawer automatically
+  useEffect(() => {
+    if (location.pathname === '/collection') {
+      setIsCollectionOpen(true);
+    }
+  }, [location.pathname]);
+
   const handleCloseSearch = () => {
     setIsSearchOpen(false);
     // If they navigated directly to /search, change URL back to home when closing
     if (location.pathname === '/search') {
+      window.history.pushState({}, '', '/');
+    }
+  };
+
+  const handleCloseCollection = () => {
+    setIsCollectionOpen(false);
+    // If they navigated directly to /collection, change URL back to home when closing
+    if (location.pathname === '/collection') {
       window.history.pushState({}, '', '/');
     }
   };
@@ -98,7 +113,7 @@ const PublicLayout = () => {
       
       <CollectionDrawer 
         isOpen={isCollectionOpen} 
-        onClose={() => setIsCollectionOpen(false)} 
+        onClose={handleCloseCollection} 
       />
 
       {/* Sticky Bottom Nav Bar for Mobile screens */}
@@ -122,6 +137,7 @@ function App() {
               <Route path="category/:slug" element={<CategoryPage />} />
               <Route path="product/:slug" element={<ProductDetail />} />
               <Route path="search" element={<Home />} /> {/* Renders home page with active search modal */}
+              <Route path="collection" element={<Home />} /> {/* Renders home page with active collection drawer */}
               <Route path="contact" element={<Contact />} />
             </Route>
 

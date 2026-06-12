@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Product } from '@/lib/supabase';
+import { supabase, type Product } from '@/lib/supabase';
 
 export interface CollectionItem {
   product_id: string;
@@ -27,16 +27,67 @@ const CollectionContext = createContext<CollectionContextType | undefined>(undef
 export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CollectionItem[]>([]);
 
-  // Load from localStorage on mount
+  // Load from localStorage or parse from query URL parameters on mount
   useEffect(() => {
-    const saved = localStorage.getItem('tk_collection');
-    if (saved) {
-      try {
-        setItems(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse collection', e);
+    const loadCollection = async () => {
+      // 1. Check for shared collection query params
+      const searchParams = new URLSearchParams(window.location.search);
+      const sharedItemsStr = searchParams.get('items');
+
+      if (sharedItemsStr) {
+        try {
+          // Parse format: prod_id1:qty1,prod_id2:qty2,...
+          const parsedPairs = sharedItemsStr.split(',').map(pair => {
+            const [id, qtyStr] = pair.split(':');
+            return { id, quantity: parseInt(qtyStr, 10) || 1 };
+          }).filter(item => item.id);
+
+          if (parsedPairs.length > 0) {
+            const productIds = parsedPairs.map(p => p.id);
+            const { data, error } = await supabase.from('products').select('*');
+
+            if (data && !error) {
+              const matchedProducts = data.filter((p: Product) => productIds.includes(p.id));
+              const collectionItems: CollectionItem[] = matchedProducts.map((p: Product) => {
+                const pair = parsedPairs.find(x => x.id === p.id);
+                return {
+                  product_id: p.id,
+                  sku: p.sku,
+                  name: p.name,
+                  price: p.price,
+                  quantity: pair ? pair.quantity : 1,
+                  cover_image: p.cover_image,
+                };
+              });
+
+              if (collectionItems.length > 0) {
+                setItems(collectionItems);
+                localStorage.setItem('tk_collection', JSON.stringify(collectionItems));
+                
+                // Remove the items parameter from the URL to clean up history and avoid reset on refresh
+                const cleanURL = window.location.pathname;
+                window.history.replaceState({}, '', cleanURL);
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse shared items from URL', e);
+        }
       }
-    }
+
+      // 2. Default fallback to local storage
+      const saved = localStorage.getItem('tk_collection');
+      if (saved) {
+        try {
+          setItems(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to parse collection', e);
+        }
+      }
+    };
+
+    loadCollection();
   }, []);
 
   // Save to localStorage when items change
@@ -100,7 +151,11 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       itemsText += `${index + 1}. *${item.name}* (ID: ${item.sku}) × ${item.quantity} — ₹${item.price * item.quantity}\n`;
     });
 
-    const message = `Hello TEKART 👋\n\nI'd like to enquire about these items:\n\n${itemsText}\nTotal estimated: *₹${totalPrice}*\n\n🔗 Collection link: ${window.location.origin}/collection\n\nPlease confirm availability and pricing.`;
+    // Encode items as prod_id:qty joined by commas
+    const encodedItems = items.map(item => `${item.product_id}:${item.quantity}`).join(',');
+    const shareURL = `${window.location.origin}/collection?items=${encodeURIComponent(encodedItems)}`;
+
+    const message = `Hello TEKART 👋\n\nI'd like to enquire about these items:\n\n${itemsText}\nTotal estimated: *₹${totalPrice}*\n\n🔗 Collection link: ${shareURL}\n\nPlease confirm availability and pricing.`;
     return `https://wa.me/919384180516?text=${encodeURIComponent(message)}`;
   };
 
