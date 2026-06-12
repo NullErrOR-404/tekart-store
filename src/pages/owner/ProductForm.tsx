@@ -192,7 +192,6 @@ export const ProductForm: React.FC = () => {
       price: parsedPrice,
       old_price: parsedOldPrice || null,
       stock: parsedStock,
-      in_stock: parsedStock > 0,
       featured,
       badge: badge.trim() || null,
       cover_image: coverImage.trim(),

@@ -52,7 +52,7 @@ export const ProductList: React.FC = () => {
     const newStock = currentStock > 0 ? 0 : 10;
     const { error } = await supabase
       .from('products')
-      .update({ stock: newStock, in_stock: newStock > 0 })
+      .update({ stock: newStock })
       .eq('id', id);
 
     if (!error) {
