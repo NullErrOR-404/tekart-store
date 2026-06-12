@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Search, Clock, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, type Product, type Category } from '@/lib/supabase';
 
 // Helper functions for Typo-Tolerant (Fuzzy) Search
@@ -291,10 +292,16 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
     localStorage.removeItem('tk_recent_searches');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-tk-surface flex flex-col animate-fade-in">
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed inset-0 z-50 bg-white dark:bg-tk-surface flex flex-col"
+        >
       {/* Header Bar */}
       <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-4 border-b border-tk-border flex items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center max-w-3xl relative">
@@ -491,6 +498,8 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
           </div>
         </div>
       </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

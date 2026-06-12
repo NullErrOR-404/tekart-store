@@ -12,6 +12,7 @@ import { Home } from '@/pages/Home';
 import { CategoryPage } from '@/pages/Category';
 import { ProductDetail } from '@/pages/ProductDetail';
 import { Contact } from '@/pages/Contact';
+import { TrendingPage } from '@/pages/Trending';
 
 // Owner Admin Pages
 import { OwnerLayout } from '@/layouts/OwnerLayout';
@@ -68,7 +69,7 @@ const PublicLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-tk-bg text-tk-text-primary antialiased">
+    <div className="flex flex-col min-h-screen layout-bg-transition text-tk-text-primary antialiased">
       {/* Scroll restore */}
       <ScrollToTop />
 
@@ -138,6 +139,7 @@ function App() {
               <Route path="product/:slug" element={<ProductDetail />} />
               <Route path="search" element={<Home />} /> {/* Renders home page with active search modal */}
               <Route path="collection" element={<Home />} /> {/* Renders home page with active collection drawer */}
+              <Route path="trending" element={<TrendingPage />} />
               <Route path="contact" element={<Contact />} />
             </Route>
 

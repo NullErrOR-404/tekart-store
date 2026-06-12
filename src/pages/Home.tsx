@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, PhoneCall, Sparkles, ShieldCheck, BadgeCheck, MessageSquare, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '@/context/ThemeContext';
 
 export const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
 
   const slideshowProducts = products.filter(p => p.featured).slice(0, 6);
   // Fallback to top 5 products if no products are explicitly marked featured
@@ -29,6 +31,57 @@ export const Home: React.FC = () => {
 
   const currentSlideProduct = finalSlideshowProducts[activeSlideIndex] || null;
 
+  // Dynamically compute a beautiful immersive gradient color palette based on active featured product
+  const heroColors = useMemo(() => {
+    if (!currentSlideProduct) {
+      // Default blue fallback
+      return {
+        bgLeft: resolvedTheme === 'dark' ? 'hsla(220, 15%, 5%, 1)' : 'hsla(220, 25%, 98%, 1)',
+        bgRight: resolvedTheme === 'dark' ? 'hsla(220, 20%, 8%, 1)' : 'hsla(220, 30%, 95%, 1)',
+        glow: resolvedTheme === 'dark' ? 'hsla(220, 70%, 50%, 0.15)' : 'hsla(220, 70%, 50%, 0.08)'
+      };
+    }
+
+    const name = currentSlideProduct.name.toLowerCase();
+    const cat = currentSlideProduct.category_id;
+
+    let hue = 220; // default blue
+    let saturation = 70;
+    let lightness = 50;
+
+    if (name.includes('harir') || name.includes('arab') || name.includes('lipstick') || name.includes('red') || name.includes('rose') || name.includes('crimson') || name.includes('edge')) {
+      hue = 350; // Red/Crimson
+      saturation = 80;
+    } else if (name.includes('aqua') || name.includes('water') || name.includes('suave') || name.includes('blue') || name.includes('cool')) {
+      hue = 195; // Aqua/Cyan/Blue
+      saturation = 85;
+    } else if (name.includes('gold') || name.includes('amber') || name.includes('oud') || name.includes('wallet') || name.includes('leather')) {
+      hue = 38; // Gold/Amber/Orange/Brown
+      saturation = 75;
+      lightness = 45;
+    } else if (name.includes('citrus') || name.includes('green') || name.includes('fresh') || name.includes('bergamot') || name.includes('lime')) {
+      hue = 120; // Green/Citrus
+      saturation = 65;
+    } else if (name.includes('black') || name.includes('obsidian') || name.includes('noir') || name.includes('charcoal')) {
+      hue = 240; // Deep Indigo/Black
+      saturation = 20;
+      lightness = 30;
+    } else {
+      // Fallback based on category
+      if (cat === 'cat-1') hue = 210; // Fashion (blue-grey)
+      else if (cat === 'cat-2') hue = 200; // Electronics (blue/cyan)
+      else if (cat === 'cat-3') hue = 280; // Perfumes (purple)
+      else if (cat === 'cat-4') hue = 140; // Deodorants (fresh green)
+      else if (cat === 'cat-5') hue = 320; // Cosmetics (pink/magenta)
+    }
+
+    return {
+      bgLeft: resolvedTheme === 'dark' ? `hsla(${hue}, 15%, 5%, 1)` : `hsla(${hue}, 25%, 98%, 1)`,
+      bgRight: resolvedTheme === 'dark' ? `hsla(${hue}, 20%, 8%, 1)` : `hsla(${hue}, 30%, 95%, 1)`,
+      glow: resolvedTheme === 'dark' ? `hsla(${hue}, ${saturation}%, ${lightness}%, 0.18)` : `hsla(${hue}, ${saturation}%, ${lightness}%, 0.08)`
+    };
+  }, [currentSlideProduct, resolvedTheme]);
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -39,22 +92,39 @@ export const Home: React.FC = () => {
         .order('priority', { ascending: true });
       if (catData) setCategories(catData);
 
-      // Fetch products (limit to 12)
+      // Fetch products
       const { data: prodData } = await supabase
         .from('products')
         .select('*')
         .order('priority', { ascending: true });
       if (prodData) {
-        // Push out-of-stock items (stock <= 0) to the end of the list
+        // Read click stats from localStorage
+        const statsStr = localStorage.getItem('tk_popular_clicks');
+        let stats: Record<string, number> = {};
+        if (statsStr) {
+          try {
+            stats = JSON.parse(statsStr);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        // Sort products: In-stock first, then by click popularity, then by priority
         const sortedProds = [...prodData].sort((a, b) => {
           const aAvailable = a.stock > 0;
           const bAvailable = b.stock > 0;
           if (aAvailable && !bAvailable) return -1;
           if (!aAvailable && bAvailable) return 1;
+
+          const clicksA = stats[a.name] || 0;
+          const clicksB = stats[b.name] || 0;
+          if (clicksB !== clicksA) {
+            return clicksB - clicksA;
+          }
+
           return a.priority - b.priority;
         });
-        // Limit to 12 products
-        setProducts(sortedProds.slice(0, 12));
+        setProducts(sortedProds);
       }
       setIsLoading(false);
     };
@@ -65,7 +135,15 @@ export const Home: React.FC = () => {
   return (
     <div className="space-y-12 pb-24">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-tk-blue-light/50 via-white dark:via-tk-surface to-tk-blue-pale/80 py-12 md:py-24 px-4 md:px-8 border-b border-tk-border">
+      <motion.section
+        animate={{
+          '--hero-glow': heroColors.glow,
+          '--hero-bg-left': heroColors.bgLeft,
+          '--hero-bg-right': heroColors.bgRight,
+        } as any}
+        transition={{ duration: 1.2, ease: 'easeInOut' }}
+        className="relative overflow-hidden py-12 md:py-24 px-4 md:px-8 border-b border-tk-border hero-transition-bg"
+      >
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           {/* Hero Content */}
           <div className="md:col-span-7 text-left space-y-6">
@@ -230,7 +308,7 @@ export const Home: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 2. CATEGORY PILLS */}
       <section className="max-w-7xl mx-auto px-4 md:px-8">
@@ -288,7 +366,7 @@ export const Home: React.FC = () => {
             <h2 className="font-display font-bold text-2xl md:text-3xl text-tk-text-primary mt-1">Trending Now</h2>
           </div>
           <Link
-            to="/category/fashion"
+            to="/trending"
             className="text-sm font-semibold text-tk-blue-deep hover:text-tk-blue-mid flex items-center gap-1"
           >
             <span>See All</span>
@@ -308,7 +386,7 @@ export const Home: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product) => (
+            {products.slice(0, 8).map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

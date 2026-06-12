@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, PhoneCall, Award, ShieldCheck, HelpCircle, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
@@ -17,6 +17,7 @@ export const ProductDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { addItem, buildSingleProductWhatsAppURL } = useCollection();
   const navigate = useNavigate();
+  const lastProductIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -64,6 +65,114 @@ export const ProductDetail: React.FC = () => {
 
     fetchProductDetails();
   }, [slug]);
+
+  // Clean up global CSS variables when the product detail page unmounts completely
+  useEffect(() => {
+    return () => {
+      document.documentElement.style.removeProperty('--page-custom-bg');
+      document.documentElement.style.removeProperty('--product-glow-color');
+      document.documentElement.style.removeProperty('--product-glow-radius');
+    };
+  }, []);
+
+  // Dynamically set page background gradient variables matching the product image/vibe
+  useEffect(() => {
+    if (!product) {
+      document.documentElement.style.removeProperty('--page-custom-bg');
+      document.documentElement.style.removeProperty('--product-glow-color');
+      document.documentElement.style.removeProperty('--product-glow-radius');
+      return;
+    }
+
+    const name = product.name.toLowerCase();
+    const cat = product.category_id;
+
+    let hue = 220; // default blue
+    let saturation = 70;
+    let lightness = 50;
+
+    if (name.includes('harir') || name.includes('arab') || name.includes('lipstick') || name.includes('red') || name.includes('rose') || name.includes('crimson') || name.includes('edge')) {
+      hue = 350; // Red/Crimson
+      saturation = 80;
+    } else if (name.includes('aqua') || name.includes('water') || name.includes('suave') || name.includes('blue') || name.includes('cool')) {
+      hue = 195; // Aqua/Cyan/Blue
+      saturation = 85;
+    } else if (name.includes('gold') || name.includes('amber') || name.includes('oud') || name.includes('wallet') || name.includes('leather')) {
+      hue = 38; // Gold/Amber/Orange/Brown
+      saturation = 75;
+      lightness = 45;
+    } else if (name.includes('citrus') || name.includes('green') || name.includes('fresh') || name.includes('bergamot') || name.includes('lime')) {
+      hue = 120; // Green/Citrus
+      saturation = 65;
+    } else if (name.includes('black') || name.includes('obsidian') || name.includes('noir') || name.includes('charcoal')) {
+      hue = 240; // Deep Indigo/Black
+      saturation = 20;
+      lightness = 30;
+    } else {
+      // Fallback based on category
+      if (cat === 'cat-1') hue = 210; // Fashion (blue-grey)
+      else if (cat === 'cat-2') hue = 200; // Electronics (blue/cyan)
+      else if (cat === 'cat-3') hue = 280; // Perfumes (purple)
+      else if (cat === 'cat-4') hue = 140; // Deodorants (fresh green)
+      else if (cat === 'cat-5') hue = 320; // Cosmetics (pink/magenta)
+    }
+
+    const bgGlowDark = `hsla(${hue}, ${saturation}%, ${lightness}%, 0.12)`;
+    const bgGlowLight = `hsla(${hue}, ${saturation}%, ${lightness}%, 0.05)`;
+
+    let animationFrameId: number;
+
+    const updateGradients = (radiusValue: string) => {
+      const isDark = document.documentElement.classList.contains('dark');
+      const glowColor = isDark ? bgGlowDark : bgGlowLight;
+      document.documentElement.style.setProperty('--product-glow-color', glowColor);
+      document.documentElement.style.setProperty('--product-glow-radius', radiusValue);
+      document.documentElement.style.setProperty(
+        '--page-custom-bg',
+        `radial-gradient(circle at var(--product-glow-x, 25%) var(--product-glow-y, 35%), var(--product-glow-color) 0%, var(--tk-bg) var(--product-glow-radius, 80%))`
+      );
+    };
+
+    // Determine animation duration: quick sweep (600ms) for gallery image updates, majestic sweep (1200ms) for page load
+    const isNewProduct = lastProductIdRef.current !== product.id;
+    lastProductIdRef.current = product.id;
+
+    const duration = isNewProduct ? 1200 : 600;
+    const startTime = performance.now();
+
+    const animateRadius = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Cubic ease-out curve
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentRadius = easeProgress * 80;
+
+      updateGradients(`${currentRadius}%`);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animateRadius);
+      }
+    };
+
+    // Start requestAnimationFrame expansion sweep
+    animationFrameId = requestAnimationFrame(animateRadius);
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const currentRadius = document.documentElement.style.getPropertyValue('--product-glow-radius') || '80%';
+          updateGradients(currentRadius);
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
+    };
+  }, [product, slug, activeImgIndex]);
 
   if (isLoading) {
     return (

@@ -149,3 +149,34 @@ body {
 ::view-transition-old(root) {
   z-index: 1;
 }
+
+/* Dynamic immersive Hero background gradient transition */
+.hero-transition-bg {
+  background: radial-gradient(circle at 50% 75%, var(--hero-glow) 0%, transparent 70%),
+              linear-gradient(135deg, var(--hero-bg-left) 0%, var(--hero-bg-right) 100%);
+}
+
+@media (min-width: 768px) {
+  .hero-transition-bg {
+    background: radial-gradient(circle at 75% 50%, var(--hero-glow) 0%, transparent 70%),
+                linear-gradient(135deg, var(--hero-bg-left) 0%, var(--hero-bg-right) 100%);
+  }
+}
+
+/* Responsive positioning for product page radial glow */
+:root {
+  --product-glow-x: 50%;
+  --product-glow-y: 25%;
+}
+@media (min-width: 768px) {
+  :root {
+    --product-glow-x: 25%;
+    --product-glow-y: 35%;
+  }
+}
+
+/* Page wrapper background transition */
+.layout-bg-transition {
+  background: var(--page-custom-bg, var(--tk-bg));
+  transition: background 0.8s ease-in-out;
+}

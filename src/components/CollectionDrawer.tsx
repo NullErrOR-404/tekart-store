@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Plus, Minus, Trash2, PhoneCall, ArrowRight } from 'lucide-react';
 import { useCollection } from '@/context/CollectionContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CollectionDrawerProps {
   isOpen: boolean;
@@ -17,8 +18,6 @@ export const CollectionDrawer: React.FC<CollectionDrawerProps> = ({ isOpen, onCl
     buildCollectionWhatsAppURL 
   } = useCollection();
 
-  if (!isOpen) return null;
-
   const handleWhatsAppEnquire = () => {
     const url = buildCollectionWhatsAppURL();
     if (url) {
@@ -27,15 +26,27 @@ export const CollectionDrawer: React.FC<CollectionDrawerProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-      {/* Sheet Content */}
-      <div className="relative w-full max-w-md bg-white dark:bg-tk-surface h-full flex flex-col shadow-2xl transition-transform duration-300 animate-slide-in-right">
+          {/* Sheet Content */}
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+            className="relative w-full max-w-md bg-white dark:bg-tk-surface h-full flex flex-col shadow-2xl z-10"
+          >
         {/* Header */}
         <div className="p-6 border-b border-tk-border flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -162,7 +173,9 @@ export const CollectionDrawer: React.FC<CollectionDrawerProps> = ({ isOpen, onCl
             </button>
           </div>
         )}
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
