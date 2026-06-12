@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Search, Clock, ArrowRight } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
@@ -100,8 +100,35 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [popularSearches, setPopularSearches] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sortOption, setSortOption] = useState<'default' | 'name-asc' | 'price-asc' | 'price-desc'>('default');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const sortedResults = useMemo(() => {
+    if (sortOption === 'default') {
+      return results;
+    }
+
+    return [...results].sort((a, b) => {
+      // 1. Keep out-of-stock items (stock <= 0) at the bottom
+      const aAvailable = a.stock > 0;
+      const bAvailable = b.stock > 0;
+      if (aAvailable && !bAvailable) return -1;
+      if (!aAvailable && bAvailable) return 1;
+
+      // 2. Sort within groups
+      if (sortOption === 'name-asc') {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortOption === 'price-asc') {
+        return a.price - b.price;
+      }
+      if (sortOption === 'price-desc') {
+        return b.price - a.price;
+      }
+      return 0;
+    });
+  }, [results, sortOption]);
 
   // Load categories, recent searches, and dynamically build popular searches from real database traffic
   useEffect(() => {
@@ -159,6 +186,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
 
   // Debounced search logic
   useEffect(() => {
+    setSortOption('default'); // Reset sort when query changes
     if (!query.trim()) {
       setResults([]);
       return;
@@ -392,20 +420,36 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
               </div>
             ) : query ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-tk-border/50 pb-3">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-tk-text-secondary">
                     Search Results ({results.length})
                   </h4>
+
+                  {results.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-tk-text-secondary font-semibold">Sort By:</span>
+                      <select
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value as any)}
+                        className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-chip px-3 py-1.5 text-xs font-bold text-tk-text-primary focus:outline-none focus:ring-1 focus:ring-tk-blue-deep cursor-pointer"
+                      >
+                        <option value="default">Best Match</option>
+                        <option value="name-asc">Alphabetical (A-Z)</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
-                {results.length === 0 ? (
+                {sortedResults.length === 0 ? (
                   <div className="text-center py-12 border border-dashed border-tk-border rounded-tk-card bg-tk-blue-pale/50">
                     <p className="text-sm text-tk-text-secondary">No products found matching "{query}".</p>
                     <p className="text-xs text-tk-text-tertiary mt-1">Try searching with a different keyword.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {results.map((product) => (
+                    {sortedResults.map((product) => (
                       <button
                         key={product.id}
                         onClick={() => handleResultClick(product.name, product.slug)}

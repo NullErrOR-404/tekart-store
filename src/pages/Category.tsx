@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
@@ -10,6 +10,30 @@ export const CategoryPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortOption, setSortOption] = useState<'default' | 'name-asc' | 'price-asc' | 'price-desc'>('default');
+
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      // 1. Keep out-of-stock items (stock <= 0) at the bottom
+      const aAvailable = a.stock > 0;
+      const bAvailable = b.stock > 0;
+      if (aAvailable && !bAvailable) return -1;
+      if (!aAvailable && bAvailable) return 1;
+
+      // 2. Sort within groups
+      if (sortOption === 'name-asc') {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortOption === 'price-asc') {
+        return a.price - b.price;
+      }
+      if (sortOption === 'price-desc') {
+        return b.price - a.price;
+      }
+      // default: sort by priority
+      return a.priority - b.priority;
+    });
+  }, [products, sortOption]);
 
   useEffect(() => {
     const fetchCategoryAndProducts = async () => {
@@ -37,15 +61,7 @@ export const CategoryPage: React.FC = () => {
             .order('priority', { ascending: true });
             
           if (prodData) {
-            // Push out-of-stock items (stock <= 0) to the end of the list
-            const sortedProds = [...prodData].sort((a, b) => {
-              const aAvailable = a.stock > 0;
-              const bAvailable = b.stock > 0;
-              if (aAvailable && !bAvailable) return -1;
-              if (!aAvailable && bAvailable) return 1;
-              return a.priority - b.priority;
-            });
-            setProducts(sortedProds);
+            setProducts(prodData);
           } else {
             setProducts([]);
           }
@@ -135,18 +151,36 @@ export const CategoryPage: React.FC = () => {
 
       {/* Products list */}
       <div className="space-y-6">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-tk-text-secondary">
-          Available in {category.name} ({products.length})
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-tk-border/50 pb-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-tk-text-secondary">
+            Available in {category.name} ({products.length})
+          </h2>
 
-        {products.length === 0 ? (
+          {products.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-tk-text-secondary font-semibold">Sort By:</span>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as any)}
+                className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-chip px-3 py-1.5 text-xs font-bold text-tk-text-primary focus:outline-none focus:ring-1 focus:ring-tk-blue-deep cursor-pointer"
+              >
+                <option value="default">Default Priority</option>
+                <option value="name-asc">Alphabetical (A-Z)</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {sortedProducts.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-tk-border rounded-tk-card bg-white dark:bg-tk-surface">
             <p className="text-sm text-tk-text-secondary font-medium">No products available in this category yet.</p>
             <p className="text-xs text-tk-text-tertiary mt-1">We are updating our boutique showroom, check back soon!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map(product => (
+            {sortedProducts.map(product => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
