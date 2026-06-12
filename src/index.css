@@ -2,25 +2,61 @@
 
 @import "tailwindcss";
 
+:root {
+  --tk-blue-deep: #1832B8;
+  --tk-blue-mid: #2D5BE3;
+  --tk-blue-bright: #4D8FFF;
+  --tk-blue-light: #EEF2FF;
+  --tk-blue-pale: #F5F7FF;
+  --tk-text-primary: #0F0F12;
+  --tk-text-secondary: #5A5F7A;
+  --tk-text-tertiary: #9BA0B8;
+  --tk-bg: #F5F7FF;
+  --tk-surface: #FFFFFF;
+  --tk-surface-2: #EEF2FF;
+  --tk-border: rgba(24, 50, 184, 0.10);
+  --tk-border-strong: rgba(24, 50, 184, 0.20);
+  --tk-wa: #25D366;
+  --tk-wa-dark: #1DA851;
+}
+
+.dark {
+  --tk-blue-deep: #4D8FFF;
+  --tk-blue-mid: #2D5BE3;
+  --tk-blue-bright: #689FFF;
+  --tk-blue-light: #121A36;
+  --tk-blue-pale: #0A0D1A;
+  --tk-text-primary: #F3F4F6;
+  --tk-text-secondary: #9BA0B8;
+  --tk-text-tertiary: #5A5F7A;
+  --tk-bg: #070913;
+  --tk-surface: #0E1222;
+  --tk-surface-2: #161C33;
+  --tk-border: rgba(77, 143, 255, 0.15);
+  --tk-border-strong: rgba(77, 143, 255, 0.25);
+  --tk-wa: #25D366;
+  --tk-wa-dark: #1DA851;
+}
+
 @theme {
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Syne', sans-serif;
   
-  --color-tk-blue-deep: #1832B8;
-  --color-tk-blue-mid: #2D5BE3;
-  --color-tk-blue-bright: #4D8FFF;
-  --color-tk-blue-light: #EEF2FF;
-  --color-tk-blue-pale: #F5F7FF;
-  --color-tk-text-primary: #0F0F12;
-  --color-tk-text-secondary: #5A5F7A;
-  --color-tk-text-tertiary: #9BA0B8;
-  --color-tk-bg: #F5F7FF;
-  --color-tk-surface: #FFFFFF;
-  --color-tk-surface-2: #EEF2FF;
-  --color-tk-border: rgba(24, 50, 184, 0.10);
-  --color-tk-border-strong: rgba(24, 50, 184, 0.20);
-  --color-tk-wa: #25D366;
-  --color-tk-wa-dark: #1DA851;
+  --color-tk-blue-deep: var(--tk-blue-deep);
+  --color-tk-blue-mid: var(--tk-blue-mid);
+  --color-tk-blue-bright: var(--tk-blue-bright);
+  --color-tk-blue-light: var(--tk-blue-light);
+  --color-tk-blue-pale: var(--tk-blue-pale);
+  --color-tk-text-primary: var(--tk-text-primary);
+  --color-tk-text-secondary: var(--tk-text-secondary);
+  --color-tk-text-tertiary: var(--tk-text-tertiary);
+  --color-tk-bg: var(--tk-bg);
+  --color-tk-surface: var(--tk-surface);
+  --color-tk-surface-2: var(--tk-surface-2);
+  --color-tk-border: var(--tk-border);
+  --color-tk-border-strong: var(--tk-border-strong);
+  --color-tk-wa: var(--tk-wa);
+  --color-tk-wa-dark: var(--tk-wa-dark);
   
   --radius-tk-chip: 4px;
   --radius-tk-input: 8px;
@@ -29,8 +65,8 @@
 }
 
 :root {
-  background-color: var(--color-tk-bg);
-  color: var(--color-tk-text-primary);
+  background-color: var(--tk-bg);
+  color: var(--tk-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -40,8 +76,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: var(--color-tk-bg);
-  color: var(--color-tk-text-primary);
+  background-color: var(--tk-bg);
+  color: var(--tk-text-primary);
   overflow-x: hidden;
 }
 
@@ -52,16 +88,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-tk-bg);
+  background: var(--tk-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-tk-border-strong);
+  background: var(--tk-border-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-tk-blue-mid);
+  background: var(--tk-blue-mid);
 }
 
 /* Hide scrollbars for categories and panels while keeping scroll functionality */
@@ -78,7 +114,11 @@ body {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-tk-border);
+  border-bottom: 1px solid var(--tk-border);
+}
+
+.dark .tk-glass {
+  background: rgba(14, 18, 34, 0.75);
 }
 
 /* Pulse animation for skeleton */

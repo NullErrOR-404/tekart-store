@@ -139,7 +139,7 @@ export const UploadWizard: React.FC = () => {
       <div
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className="border-2 border-dashed border-tk-border-strong hover:border-tk-blue-deep rounded-tk-modal p-8 text-center bg-white cursor-pointer transition-colors duration-200"
+        className="border-2 border-dashed border-tk-border-strong hover:border-tk-blue-deep rounded-tk-modal p-8 text-center bg-white dark:bg-tk-surface cursor-pointer transition-colors duration-200"
       >
         <input
           type="file"
@@ -166,7 +166,7 @@ export const UploadWizard: React.FC = () => {
 
       {/* Queue Listing */}
       {uploads.length > 0 && (
-        <div className="bg-white border border-tk-border rounded-tk-card shadow-sm overflow-hidden space-y-4 p-6">
+        <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card shadow-sm overflow-hidden space-y-4 p-6">
           <div className="flex items-center justify-between border-b border-tk-border pb-3">
             <h3 className="text-sm font-bold text-tk-text-primary">Upload Queue ({uploads.length} items)</h3>
             <div className="flex gap-2">

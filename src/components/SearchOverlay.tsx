@@ -3,23 +3,107 @@ import { useNavigate } from 'react-router-dom';
 import { X, Search, Clock, ArrowRight } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
 
+// Helper functions for Typo-Tolerant (Fuzzy) Search
+function getLevenshteinDistance(a: string, b: string): number {
+  const tmp: number[][] = [];
+  for (let i = 0; i <= a.length; i++) {
+    tmp[i] = [i];
+  }
+  for (let j = 0; j <= b.length; j++) {
+    tmp[0][j] = j;
+  }
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      tmp[i][j] = Math.min(
+        tmp[i - 1][j] + 1,
+        tmp[i][j - 1] + 1,
+        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return tmp[a.length][b.length];
+}
+
+function getWordFuzzyScore(queryWord: string, targetWord: string): number {
+  const distance = getLevenshteinDistance(queryWord, targetWord);
+  const maxLength = Math.max(queryWord.length, targetWord.length);
+  if (maxLength === 0) return 0;
+  return 1 - distance / maxLength;
+}
+
+function getProductFuzzyScore(query: string, product: Product): number {
+  const queryLower = query.toLowerCase().trim();
+  if (!queryLower) return 0;
+  
+  const queryWords = queryLower.split(/\s+/).filter(Boolean);
+  if (queryWords.length === 0) return 0;
+
+  const nameLower = product.name.toLowerCase();
+  const brandLower = product.brand?.toLowerCase() || '';
+  const skuLower = product.sku.toLowerCase();
+  const tags = product.tags || [];
+
+  // Check direct substring match first (exact contains matches rank high)
+  const isDirectSubstring = 
+    nameLower.includes(queryLower) || 
+    brandLower.includes(queryLower) || 
+    skuLower.includes(queryLower) ||
+    tags.some(tag => tag.toLowerCase().includes(queryLower));
+
+  if (isDirectSubstring) {
+    return 1.0;
+  }
+
+  // Word-by-word fuzzy comparison
+  let totalScore = 0;
+  for (const qWord of queryWords) {
+    let bestWordScore = 0;
+
+    // Check name words
+    const nameWords = nameLower.split(/\s+/).filter(Boolean);
+    for (const nWord of nameWords) {
+      bestWordScore = Math.max(bestWordScore, getWordFuzzyScore(qWord, nWord));
+    }
+
+    // Check brand words
+    if (brandLower) {
+      const brandWords = brandLower.split(/\s+/).filter(Boolean);
+      for (const bWord of brandWords) {
+        bestWordScore = Math.max(bestWordScore, getWordFuzzyScore(qWord, bWord));
+      }
+    }
+
+    // Check SKU
+    bestWordScore = Math.max(bestWordScore, getWordFuzzyScore(qWord, skuLower));
+
+    // Check tags
+    for (const tag of tags) {
+      const tagLower = tag.toLowerCase();
+      bestWordScore = Math.max(bestWordScore, getWordFuzzyScore(qWord, tagLower));
+    }
+
+    totalScore += bestWordScore;
+  }
+
+  return totalScore / queryWords.length;
+}
+
 interface SearchOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const POPULAR_SEARCHES = ['Oxford Shirt', 'Chelsea Boots', 'ANC Headphones', 'Oud Noir', 'Lipstick'];
 
 export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [popularSearches, setPopularSearches] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Load categories and recent searches
+  // Load categories, recent searches, and dynamically build popular searches from real database traffic
   useEffect(() => {
     if (isOpen) {
       // Focus input
@@ -35,12 +119,32 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
         }
       }
 
-      // Fetch categories
-      const fetchCategories = async () => {
-        const { data } = await supabase.from('categories').select('*').order('priority', { ascending: true });
-        if (data) setCategories(data);
+      // Fetch categories and products to build popular searches list
+      const fetchSearchData = async () => {
+        const { data: catData } = await supabase.from('categories').select('*').order('priority', { ascending: true });
+        if (catData) setCategories(catData);
+
+        const { data: prodData } = await supabase.from('products').select('name').order('priority', { ascending: true });
+        if (prodData) {
+          const statsStr = localStorage.getItem('tk_popular_clicks');
+          let stats: Record<string, number> = {};
+          if (statsStr) {
+            try {
+              stats = JSON.parse(statsStr);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+          // Sort products by user traffic (clicked counts)
+          const sorted = [...prodData].sort((a, b) => {
+            const clicksA = stats[a.name] || 0;
+            const clicksB = stats[b.name] || 0;
+            return clicksB - clicksA;
+          });
+          setPopularSearches(sorted.map(p => p.name).slice(0, 5));
+        }
       };
-      fetchCategories();
+      fetchSearchData();
     }
   }, [isOpen]);
 
@@ -68,14 +172,42 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
         .select('*');
 
       if (data) {
-        // Simple search filtering locally since mockSupabase does not do partial text matches on DB side in a complex way
-        const filtered = data.filter((product: Product) => 
-          product.name.toLowerCase().includes(query.toLowerCase()) || 
-          (product.description && product.description.toLowerCase().includes(query.toLowerCase())) ||
-          (product.brand && product.brand.toLowerCase().includes(query.toLowerCase())) ||
-          product.sku.toLowerCase().includes(query.toLowerCase())
-        );
-        setResults(filtered);
+        const queryLower = query.toLowerCase().trim();
+
+        // 1. Calculate fuzzy match scores for all products and filter by threshold (62% similarity)
+        const scoredProducts = data
+          .map((product: Product) => {
+            const score = getProductFuzzyScore(queryLower, product);
+            return { product, score };
+          })
+          .filter((item: { product: Product; score: number }) => item.score >= 0.62);
+
+        // 2. Sort results based on score, starts-with relevance, and availability
+        const sorted = [...scoredProducts].sort((a, b) => {
+          // Push out-of-stock items to the bottom
+          const aAvailable = a.product.stock > 0;
+          const bAvailable = b.product.stock > 0;
+          if (aAvailable && !bAvailable) return -1;
+          if (!aAvailable && bAvailable) return 1;
+          
+          // Sort by match score (highest score first)
+          if (Math.abs(a.score - b.score) > 0.01) {
+            return b.score - a.score;
+          }
+
+          // Prioritize starts-with name match
+          const aNameLower = a.product.name.toLowerCase();
+          const bNameLower = b.product.name.toLowerCase();
+          const aStartsWith = aNameLower.startsWith(queryLower);
+          const bStartsWith = bNameLower.startsWith(queryLower);
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+          
+          // Fallback to priority order
+          return a.product.priority - b.product.priority;
+        });
+
+        setResults(sorted.map((item: { product: Product; score: number }) => item.product));
       }
       setIsLoading(false);
     }, 200);
@@ -98,12 +230,27 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
     }
   };
 
+  const registerClick = (prodName: string) => {
+    const statsStr = localStorage.getItem('tk_popular_clicks');
+    let stats: Record<string, number> = {};
+    if (statsStr) {
+      try {
+        stats = JSON.parse(statsStr);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    stats[prodName] = (stats[prodName] || 0) + 1;
+    localStorage.setItem('tk_popular_clicks', JSON.stringify(stats));
+  };
+
   const handlePopularClick = (term: string) => {
     setQuery(term);
     addRecentSearch(term);
   };
 
-  const handleResultClick = (slug: string) => {
+  const handleResultClick = (productName: string, slug: string) => {
+    registerClick(productName);
     if (query.trim()) {
       addRecentSearch(query);
     }
@@ -119,7 +266,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-white dark:bg-tk-surface flex flex-col animate-fade-in">
       {/* Header Bar */}
       <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-4 border-b border-tk-border flex items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center max-w-3xl relative">
@@ -186,16 +333,19 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
               </div>
             )}
 
-            {/* Popular Searches */}
-            {!query && (
+            {/* Popular Searches (real products, ordered by user clicks) */}
+            {!query && popularSearches.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-tk-text-secondary">Popular Searches</h4>
                 <div className="flex flex-wrap gap-2">
-                  {POPULAR_SEARCHES.map((term, i) => (
+                  {popularSearches.map((term, i) => (
                     <button
                       key={i}
-                      onClick={() => handlePopularClick(term)}
-                      className="text-xs font-medium text-tk-text-secondary bg-tk-blue-light hover:bg-tk-blue-mid hover:text-white px-3 py-1.5 rounded-tk-chip transition-colors"
+                      onClick={() => {
+                        handlePopularClick(term);
+                        registerClick(term);
+                      }}
+                      className="text-xs font-medium text-tk-text-secondary bg-tk-blue-light hover:bg-tk-blue-mid hover:text-white px-3 py-1.5 rounded-tk-chip transition-colors cursor-pointer"
                     >
                       {term}
                     </button>
@@ -231,7 +381,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
               <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-tk-text-secondary">Searching...</h4>
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-4 p-3 border border-tk-border rounded-tk-card bg-white animate-pulse">
+                  <div key={i} className="flex gap-4 p-3 border border-tk-border rounded-tk-card bg-white dark:bg-tk-surface animate-pulse">
                     <div className="w-16 h-20 bg-tk-blue-light rounded"></div>
                     <div className="flex-1 space-y-2 py-1">
                       <div className="h-4 bg-tk-blue-light rounded w-3/4"></div>
@@ -258,8 +408,8 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
                     {results.map((product) => (
                       <button
                         key={product.id}
-                        onClick={() => handleResultClick(product.slug)}
-                        className="flex gap-4 p-3 border border-tk-border hover:border-tk-blue-bright rounded-tk-card bg-white w-full text-left transition-all hover:shadow-[0_4px_12px_rgba(24,50,184,0.04)]"
+                        onClick={() => handleResultClick(product.name, product.slug)}
+                        className="flex gap-4 p-3 border border-tk-border hover:border-tk-blue-bright rounded-tk-card bg-white dark:bg-tk-surface w-full text-left transition-all hover:shadow-[0_4px_12px_rgba(24,50,184,0.04)] cursor-pointer"
                       >
                         <img
                           src={product.cover_image}

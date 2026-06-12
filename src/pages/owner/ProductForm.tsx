@@ -192,6 +192,7 @@ export const ProductForm: React.FC = () => {
       price: parsedPrice,
       old_price: parsedOldPrice || null,
       stock: parsedStock,
+      in_stock: parsedStock > 0,
       featured,
       badge: badge.trim() || null,
       cover_image: coverImage.trim(),
@@ -274,7 +275,7 @@ export const ProductForm: React.FC = () => {
       )}
 
       {/* Form Area */}
-      <form onSubmit={handleFormSubmit} className="space-y-6 bg-white border border-tk-border rounded-tk-modal p-6 md:p-8 shadow-sm">
+      <form onSubmit={handleFormSubmit} className="space-y-6 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-modal p-6 md:p-8 shadow-sm">
         
         {/* Section 1: Basic Info */}
         <div className="space-y-4">
@@ -337,7 +338,7 @@ export const ProductForm: React.FC = () => {
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full bg-white px-3.5 py-2.5 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none"
+                className="w-full bg-white dark:bg-tk-surface-2 px-3.5 py-2.5 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>

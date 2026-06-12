@@ -35,7 +35,7 @@ export const CollectionDrawer: React.FC<CollectionDrawerProps> = ({ isOpen, onCl
       />
 
       {/* Sheet Content */}
-      <div className="relative w-full max-w-md bg-white h-full flex flex-col shadow-2xl transition-transform duration-300 animate-slide-in-right">
+      <div className="relative w-full max-w-md bg-white dark:bg-tk-surface h-full flex flex-col shadow-2xl transition-transform duration-300 animate-slide-in-right">
         {/* Header */}
         <div className="p-6 border-b border-tk-border flex items-center justify-between">
           <div className="flex items-center gap-2">

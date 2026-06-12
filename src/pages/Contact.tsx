@@ -19,7 +19,7 @@ export const Contact: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         {/* Left Column: Details */}
         <div className="space-y-6">
-          <div className="bg-white border border-tk-border rounded-tk-card p-6 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card p-6 shadow-sm space-y-6">
             <h3 className="font-display font-bold text-lg text-tk-text-primary border-b border-tk-border pb-3">
               Showroom Coordinates
             </h3>
@@ -39,7 +39,7 @@ export const Contact: React.FC = () => {
                 <div>
                   <p className="font-semibold text-tk-text-primary">Contact Numbers</p>
                   <p className="hover:text-tk-blue-deep transition-colors">
-                    <a href="tel:+919384180516">+91 9384180516</a> (Primary)
+                    <a href="tel:+917339433225">+91 7339433225</a> (Primary)
                   </p>
                   <p className="hover:text-tk-blue-deep transition-colors">
                     <a href="tel:+919025511375">+91 9025511375</a> (Secondary)
@@ -103,7 +103,7 @@ export const Contact: React.FC = () => {
 
         {/* Right Column: Embedded Map */}
         <div className="space-y-6">
-          <div className="bg-white border border-tk-border rounded-tk-card overflow-hidden shadow-sm h-96">
+          <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card overflow-hidden shadow-sm h-96">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.3140733568864!2d77.42557997451383!3d8.171060902047805!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b04f123bc60a7ff%3A0xe541cf5e1e484bf8!2sNagercoil%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
               width="100%"

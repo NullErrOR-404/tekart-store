@@ -46,7 +46,15 @@ export const ProductDetail: React.FC = () => {
           .order('priority', { ascending: true });
         
         if (related) {
-          setRelatedProducts(related.slice(0, 4));
+          // Push out-of-stock items (stock <= 0) to the end of the list
+          const sortedRelated = [...related].sort((a, b) => {
+            const aAvailable = a.stock > 0;
+            const bAvailable = b.stock > 0;
+            if (aAvailable && !bAvailable) return -1;
+            if (!aAvailable && bAvailable) return 1;
+            return a.priority - b.priority;
+          });
+          setRelatedProducts(sortedRelated.slice(0, 4));
         }
       } else {
         setProduct(null);
@@ -62,7 +70,7 @@ export const ProductDetail: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 space-y-8 min-h-[50vh] text-left">
         <div className="h-6 bg-tk-blue-light animate-pulse rounded w-24"></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-          <div className="aspect-[4/5] bg-white border border-tk-border rounded-tk-card animate-pulse"></div>
+          <div className="aspect-[4/5] bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card animate-pulse"></div>
           <div className="space-y-4">
             <div className="h-8 bg-tk-blue-light animate-pulse rounded w-3/4"></div>
             <div className="h-4 bg-tk-blue-light animate-pulse rounded w-1/4"></div>
@@ -115,7 +123,7 @@ export const ProductDetail: React.FC = () => {
         <div className="md:col-span-6 space-y-4">
           <div 
             onClick={() => setIsLightboxOpen(true)}
-            className="relative aspect-[4/5] bg-white border border-tk-border rounded-tk-modal overflow-hidden shadow-sm cursor-zoom-in group"
+            className="relative aspect-[4/5] bg-white dark:bg-tk-surface border border-tk-border rounded-tk-modal overflow-hidden shadow-sm cursor-zoom-in group"
           >
             <AnimatePresence mode="wait">
               <motion.img
@@ -204,11 +212,23 @@ export const ProductDetail: React.FC = () => {
 
           {/* In Stock Badge */}
           <div>
-            {product.in_stock ? (
-              <span className="inline-flex items-center bg-tk-blue-light text-tk-blue-deep text-xs font-semibold py-1.5 px-3 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-tk-wa mr-2 animate-pulse"></span>
-                In Stock & Ready to Ship
-              </span>
+            {product.stock > 0 ? (
+              product.stock <= 3 ? (
+                <div className="space-y-2">
+                  <span className="inline-flex items-center bg-red-50 text-red-600 border border-red-200 text-xs font-bold py-1.5 px-3 rounded-full animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-red-600 mr-2"></span>
+                    Only {product.stock} Left - Selling Fast!
+                  </span>
+                  <p className="text-xs text-red-500 font-medium pl-1">
+                    This item is in high demand. Enquire soon to secure yours!
+                  </p>
+                </div>
+              ) : (
+                <span className="inline-flex items-center bg-tk-blue-light text-tk-blue-deep text-xs font-semibold py-1.5 px-3 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-tk-wa mr-2 animate-pulse"></span>
+                  In Stock & Ready to Ship
+                </span>
+              )
             ) : (
               <span className="inline-flex items-center bg-tk-surface-2 text-tk-text-secondary text-xs font-semibold py-1.5 px-3 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-tk-text-secondary mr-2"></span>
@@ -264,7 +284,7 @@ export const ProductDetail: React.FC = () => {
                 addItem(product);
                 // Alert popup or feedback
               }}
-              className="flex-1 bg-white hover:bg-tk-blue-pale border border-tk-blue-deep hover:border-tk-blue-mid text-tk-blue-deep font-bold py-3.5 px-6 rounded-tk-input flex items-center justify-center gap-2 transition-all"
+              className="flex-1 bg-white dark:bg-tk-surface hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 border border-tk-blue-deep hover:border-tk-blue-mid text-tk-blue-deep font-bold py-3.5 px-6 rounded-tk-input flex items-center justify-center gap-2 transition-all"
               id="btn-desktop-add-collection"
             >
               <ShoppingBag className="h-5 w-5" />
@@ -302,10 +322,10 @@ export const ProductDetail: React.FC = () => {
       )}
 
       {/* Sticky Bottom Actions Bar (Mobile Only) */}
-      <div className="sm:hidden fixed bottom-[60px] left-0 right-0 z-30 bg-white border-t border-tk-border px-4 py-3 flex gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      <div className="sm:hidden fixed bottom-[60px] left-0 right-0 z-30 bg-white dark:bg-tk-surface border-t border-tk-border px-4 py-3 flex gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         <button
           onClick={() => addItem(product)}
-          className="flex-1 bg-white border border-tk-blue-deep text-tk-blue-deep font-bold py-3 px-4 rounded-tk-input text-sm flex items-center justify-center gap-1.5"
+          className="flex-1 bg-white dark:bg-tk-surface border border-tk-blue-deep text-tk-blue-deep font-bold py-3 px-4 rounded-tk-input text-sm flex items-center justify-center gap-1.5"
           id="btn-mobile-add-collection"
         >
           <ShoppingBag className="h-4 w-4" />

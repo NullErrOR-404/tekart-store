@@ -47,7 +47,7 @@ export const OwnerLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-tk-bg flex flex-col md:flex-row text-left">
       {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 bg-white border-r border-tk-border flex flex-col shrink-0">
+      <aside className="w-full md:w-64 bg-white dark:bg-tk-surface border-r border-tk-border flex flex-col shrink-0">
         {/* Brand/Header */}
         <div className="p-6 border-b border-tk-border flex items-center justify-between">
           <div>
@@ -93,7 +93,7 @@ export const OwnerLayout: React.FC = () => {
         <div className="p-4 border-t border-tk-border">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-tk-input text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-tk-input text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
           >
             <LogOut className="h-4.5 w-4.5" />
             <span>Sign Out</span>
@@ -105,7 +105,7 @@ export const OwnerLayout: React.FC = () => {
       <main className="flex-1 p-6 md:p-8 overflow-y-auto">
         {/* Mock database pill alert */}
         {isMockMode && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-tk-input p-3 text-xs text-amber-800 flex items-center gap-2">
+          <div className="mb-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-tk-input p-3 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
             <span>
               <strong>Demo Mode:</strong> Any modifications you make will be saved locally in your browser's LocalStorage. To connect your real database, provide your Supabase credentials in the env configuration.

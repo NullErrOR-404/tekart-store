@@ -52,7 +52,7 @@ export const ProductList: React.FC = () => {
     const newStock = currentStock > 0 ? 0 : 10;
     const { error } = await supabase
       .from('products')
-      .update({ stock: newStock })
+      .update({ stock: newStock, in_stock: newStock > 0 })
       .eq('id', id);
 
     if (!error) {
@@ -96,7 +96,7 @@ export const ProductList: React.FC = () => {
           <div className="h-8 bg-tk-blue-light animate-pulse rounded w-1/4"></div>
           <div className="h-10 bg-tk-blue-light animate-pulse rounded w-28"></div>
         </div>
-        <div className="h-96 bg-white border border-tk-border rounded-tk-card animate-pulse"></div>
+        <div className="h-96 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card animate-pulse"></div>
       </div>
     );
   }
@@ -119,7 +119,7 @@ export const ProductList: React.FC = () => {
       </div>
 
       {/* Filters controls bar */}
-      <div className="bg-white border border-tk-border rounded-tk-card p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
         {/* Search */}
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-tk-text-tertiary" />
@@ -138,7 +138,7 @@ export const ProductList: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-white border border-tk-border rounded-tk-input px-3 py-2 text-xs text-tk-text-primary focus:outline-none focus:ring-1 focus:ring-tk-blue-deep"
+            className="w-full bg-white dark:bg-tk-surface-2 border border-tk-border rounded-tk-input px-3 py-2 text-xs text-tk-text-primary focus:outline-none focus:ring-1 focus:ring-tk-blue-deep"
           >
             <option value="">All Categories</option>
             {categories.map((cat) => (
@@ -151,7 +151,7 @@ export const ProductList: React.FC = () => {
       </div>
 
       {/* Products Table container */}
-      <div className="bg-white border border-tk-border rounded-tk-card overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card overflow-hidden shadow-sm">
         {filteredProducts.length === 0 ? (
           <div className="p-12 text-center text-tk-text-secondary text-sm">
             No products match the selected criteria.
@@ -171,10 +171,9 @@ export const ProductList: React.FC = () => {
                 </tr>
               </thead>
               
-              <tbody className="divide-y divide-tk-border/50 bg-white">
+              <tbody className="divide-y divide-tk-border/50 bg-white dark:bg-tk-surface">
                 {filteredProducts.map((prod) => {
                   const cat = categories.find(c => c.id === prod.category_id);
-                  const inStock = prod.stock > 0;
                   return (
                     <tr key={prod.id} className="hover:bg-tk-blue-pale/20 transition-colors">
                       {/* Image + Title */}
@@ -226,16 +225,16 @@ export const ProductList: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <button
                           onClick={() => handleToggleStock(prod.id, prod.stock)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full font-bold transition-all text-[10px] ${
-                            inStock
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-red-50 text-red-700 border border-red-200'
+                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full font-bold transition-all text-[10px] cursor-pointer ${
+                            prod.stock > 3
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
                           }`}
                         >
-                          {inStock ? (
+                          {prod.stock > 0 ? (
                             <>
                               <CheckCircle2 className="h-3 w-3" />
-                              <span>In Stock ({prod.stock})</span>
+                              <span>{prod.stock <= 3 ? `Low Stock (${prod.stock})` : `In Stock (${prod.stock})`}</span>
                             </>
                           ) : (
                             <>
@@ -253,7 +252,7 @@ export const ProductList: React.FC = () => {
                           className={`p-1.5 rounded-full border transition-all ${
                             prod.featured
                               ? 'bg-amber-50 border-amber-200 text-amber-500'
-                              : 'bg-white border-tk-border text-tk-text-tertiary hover:text-amber-500'
+                              : 'bg-white dark:bg-tk-surface border-tk-border text-tk-text-tertiary hover:text-amber-500'
                           }`}
                           title={prod.featured ? 'Remove from Featured' : 'Mark as Featured'}
                         >

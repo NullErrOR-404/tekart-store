@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, ShoppingBag, PhoneCall } from 'lucide-react';
+import { Menu, X, Search, ShoppingBag, PhoneCall, Sun, Moon, Monitor } from 'lucide-react';
 import { useCollection } from '@/context/CollectionContext';
 import tekartLogo from '@/assets/tekart-logo.png';
 import { supabase, type Category } from '@/lib/supabase';
+import { motion } from 'framer-motion';
+import { useTheme } from '@/context/ThemeContext';
+
+const MotionLink = motion(Link);
 
 interface HeaderProps {
   onSearchOpen: () => void;
@@ -15,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
   const [categories, setCategories] = useState<Category[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const { itemsCount } = useCollection();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,44 +56,97 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
             : 'bg-transparent py-4'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative flex items-center justify-between">
           {/* Left: Menu button */}
-          <button
+          <motion.button
             onClick={() => setIsMenuOpen(true)}
-            className="p-2 -ml-2 text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200"
+            whileHover={{ scale: 1.15, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 -ml-2 text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200 cursor-pointer z-20"
             aria-label="Open navigation menu"
             id="btn-open-menu"
           >
             <Menu className="h-6 w-6" />
-          </button>
+          </motion.button>
 
-          {/* Center: Logo */}
-          <div className="flex-1 flex justify-center">
+          {/* Center: Logo (perfectly centered top center) */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <Link to="/" className="flex items-center justify-center">
-              <img
+              <motion.img
                 src={tekartLogo}
                 alt="TEKART - SMART LIVING"
-                className="h-9 md:h-11 w-auto object-contain transition-all duration-300"
+                whileHover={{ scale: 1.05, y: -1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                className="h-9 md:h-11 w-auto object-contain cursor-pointer transition-all duration-300"
+                style={resolvedTheme === 'dark' ? { filter: 'brightness(0) invert(1)' } : undefined}
               />
             </Link>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 z-20">
+            {/* Theme Toggle Dropdown */}
+            <div className="relative group">
+              <motion.button
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200 cursor-pointer"
+                aria-label="Toggle theme"
+              >
+                {theme === 'light' && <Sun className="h-5 w-5" />}
+                {theme === 'dark' && <Moon className="h-5 w-5" />}
+                {theme === 'system' && <Monitor className="h-5 w-5" />}
+              </motion.button>
+              
+              <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-input shadow-lg py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
+                    theme === 'light' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
+                  }`}
+                >
+                  <Sun className="h-3.5 w-3.5" />
+                  <span>Light</span>
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
+                    theme === 'dark' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
+                  }`}
+                >
+                  <Moon className="h-3.5 w-3.5" />
+                  <span>Dark</span>
+                </button>
+                <button
+                  onClick={() => setTheme('system')}
+                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
+                    theme === 'system' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
+                  }`}
+                >
+                  <Monitor className="h-3.5 w-3.5" />
+                  <span>System</span>
+                </button>
+              </div>
+            </div>
+
             {/* Search */}
-            <button
+            <motion.button
               onClick={onSearchOpen}
-              className="p-2 text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200 cursor-pointer"
               aria-label="Search products"
               id="btn-header-search"
             >
               <Search className="h-5 w-5" />
-            </button>
+            </motion.button>
 
             {/* Collection (Wishlist) */}
-            <button
+            <motion.button
               onClick={onCollectionOpen}
-              className="p-2 relative text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 relative text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200 cursor-pointer"
               aria-label="Open collection"
               id="btn-header-collection"
             >
@@ -98,19 +156,21 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                   {itemsCount}
                 </span>
               )}
-            </button>
+            </motion.button>
 
             {/* WhatsApp (Desktop Direct) */}
-            <a
+            <motion.a
               href="https://wa.me/919384180516"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex p-2 items-center gap-1 text-xs font-semibold text-white bg-tk-wa hover:bg-tk-wa-dark transition-colors duration-200 rounded-full px-3"
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.96 }}
+              className="hidden sm:flex p-2 items-center gap-1 text-xs font-semibold text-white bg-tk-wa hover:bg-tk-wa-dark transition-colors duration-200 rounded-full px-3 cursor-pointer shadow-sm hover:shadow"
               id="btn-header-whatsapp"
             >
               <PhoneCall className="h-3 w-3" />
               <span>WhatsApp</span>
-            </a>
+            </motion.a>
           </div>
         </div>
       </header>
@@ -125,7 +185,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
           />
 
           {/* Drawer Content */}
-          <div className="relative flex w-full max-w-xs flex-col bg-white p-6 shadow-2xl transition-transform duration-300 animate-slide-in-left">
+          <div className="relative flex w-full max-w-xs flex-col bg-white dark:bg-tk-surface p-6 shadow-2xl transition-transform duration-300 animate-slide-in-left">
             <div className="flex items-center justify-between border-b border-tk-border pb-4">
               <span className="font-display font-bold text-lg text-tk-text-primary">Menu</span>
               <button
@@ -139,13 +199,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
             </div>
 
             <nav className="flex-1 py-6 space-y-4">
-              <Link
+              <MotionLink
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
+                whileHover={{ x: 4 }}
                 className="block text-base font-semibold text-tk-text-primary hover:text-tk-blue-deep py-2 border-b border-tk-border/50"
               >
                 Home
-              </Link>
+              </MotionLink>
               
               <div className="space-y-1">
                 <span className="block text-xs font-bold uppercase tracking-wider text-tk-text-secondary mt-4 mb-2">
@@ -159,41 +220,87 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                   </div>
                 ) : (
                   categories.map(category => (
-                    <button
+                    <motion.button
                       key={category.id}
                       onClick={() => handleCategoryClick(category.slug)}
-                      className="w-full text-left block text-sm font-medium text-tk-text-secondary hover:text-tk-blue-deep py-2 pl-2 border-l-2 border-transparent hover:border-tk-blue-bright transition-all"
+                      whileHover={{ x: 6 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      className="w-full text-left block text-sm font-medium text-tk-text-secondary hover:text-tk-blue-deep py-2 pl-2 border-l-2 border-transparent hover:border-tk-blue-bright transition-colors duration-200 cursor-pointer"
                     >
                       <span className="mr-2">{category.icon}</span>
                       {category.name}
-                    </button>
+                    </motion.button>
                   ))
                 )}
               </div>
 
               <div className="pt-6 border-t border-tk-border mt-6 space-y-3">
-                <Link
+                <MotionLink
                   to="/contact"
                   onClick={() => setIsMenuOpen(false)}
+                  whileHover={{ x: 4 }}
                   className="block text-sm font-medium text-tk-text-secondary hover:text-tk-blue-deep"
                 >
                   Store Location & Hours
-                </Link>
-                <Link
+                </MotionLink>
+                <MotionLink
                   to="/owner"
                   onClick={() => setIsMenuOpen(false)}
+                  whileHover={{ x: 4 }}
                   className="block text-sm font-medium text-tk-text-secondary hover:text-tk-blue-deep"
                 >
                   Owner Portal
-                </Link>
+                </MotionLink>
               </div>
             </nav>
+
+            {/* Theme switcher inside Mobile Drawer */}
+            <div className="border-t border-tk-border pt-4 pb-4">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-tk-text-secondary mb-2">
+                Theme Mode
+              </span>
+              <div className="flex bg-tk-blue-pale dark:bg-tk-surface-2 p-1 rounded-tk-input border border-tk-border">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-tk-chip text-[11px] font-semibold transition-all ${
+                    theme === 'light'
+                      ? 'bg-white dark:bg-tk-surface text-tk-blue-deep shadow-sm'
+                      : 'text-tk-text-secondary hover:text-tk-text-primary'
+                  }`}
+                >
+                  <Sun className="h-3.5 w-3.5" />
+                  <span>Light</span>
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-tk-chip text-[11px] font-semibold transition-all ${
+                    theme === 'dark'
+                      ? 'bg-white dark:bg-tk-surface text-tk-blue-deep shadow-sm'
+                      : 'text-tk-text-secondary hover:text-tk-text-primary'
+                  }`}
+                >
+                  <Moon className="h-3.5 w-3.5" />
+                  <span>Dark</span>
+                </button>
+                <button
+                  onClick={() => setTheme('system')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-tk-chip text-[11px] font-semibold transition-all ${
+                    theme === 'system'
+                      ? 'bg-white dark:bg-tk-surface text-tk-blue-deep shadow-sm'
+                      : 'text-tk-text-secondary hover:text-tk-text-primary'
+                  }`}
+                >
+                  <Monitor className="h-3.5 w-3.5" />
+                  <span>System</span>
+                </button>
+              </div>
+            </div>
 
             <div className="border-t border-tk-border pt-4">
               <div className="text-xs text-tk-text-secondary space-y-1">
                 <p className="font-semibold text-tk-text-primary">TEKART Smart Living</p>
                 <p>Nagercoil, Tamil Nadu</p>
-                <p>+91 9384180516</p>
+                <p>+91 7339433225</p>
               </div>
             </div>
           </div>

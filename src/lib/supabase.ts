@@ -218,7 +218,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     category_id: 'cat-3',
     price: 3499.00,
     old_price: 4999.00,
-    stock: 5,
+    stock: 3,
     in_stock: true,
     featured: true,
     badge: 'Best Seller',

@@ -37,7 +37,7 @@ export const OwnerDashboard: React.FC = () => {
       const prods = prodData || [];
       
       // Calculate statistics
-      const outOfStockCount = prods.filter((p: Product) => !p.in_stock).length;
+      const outOfStockCount = prods.filter((p: Product) => p.stock <= 0).length;
       const featuredCount = prods.filter((p: Product) => p.featured).length;
 
       setStats({
@@ -64,10 +64,10 @@ export const OwnerDashboard: React.FC = () => {
         <div className="h-8 bg-tk-blue-light animate-pulse rounded w-1/4"></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-24 bg-white border border-tk-border rounded-tk-card animate-pulse"></div>
+            <div key={i} className="h-24 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card animate-pulse"></div>
           ))}
         </div>
-        <div className="h-64 bg-white border border-tk-border rounded-tk-card animate-pulse"></div>
+        <div className="h-64 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card animate-pulse"></div>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export const OwnerDashboard: React.FC = () => {
         {statCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="bg-white border border-tk-border rounded-tk-card p-5 shadow-sm flex items-center gap-4">
+            <div key={i} className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card p-5 shadow-sm flex items-center gap-4">
               <div className={`w-12 h-12 rounded-full ${card.bg} ${card.color} flex items-center justify-center shrink-0`}>
                 <Icon className="h-6 w-6" />
               </div>
@@ -109,7 +109,7 @@ export const OwnerDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left column: Quick Actions */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white border border-tk-border rounded-tk-card p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card p-6 shadow-sm space-y-4">
             <h3 className="font-display font-bold text-lg text-tk-text-primary border-b border-tk-border pb-3">
               Quick Operations
             </h3>
@@ -136,7 +136,7 @@ export const OwnerDashboard: React.FC = () => {
 
         {/* Right column: Recent Additions list */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-white border border-tk-border rounded-tk-card p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-tk-border pb-3">
               <h3 className="font-display font-bold text-lg text-tk-text-primary">
                 Recently Added Products

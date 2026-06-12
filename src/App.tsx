@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation, Link } from 'react-router-dom';
 import { CollectionProvider } from '@/context/CollectionContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { SearchOverlay } from '@/components/SearchOverlay';
@@ -19,6 +20,7 @@ import { OwnerDashboard } from '@/pages/owner/Dashboard';
 import { ProductList } from '@/pages/owner/ProductList';
 import { ProductForm } from '@/pages/owner/ProductForm';
 import { UploadWizard } from '@/pages/owner/UploadWizard';
+import { ResetPassword } from '@/pages/owner/ResetPassword';
 
 // Scroll to top helper on page change
 const ScrollToTop = () => {
@@ -67,7 +69,7 @@ const PublicLayout = () => {
       </div>
 
       {/* Footer Area */}
-      <footer className="bg-white border-t border-tk-border py-8 pb-24 sm:pb-8">
+      <footer className="bg-white dark:bg-tk-surface border-t border-tk-border py-8 pb-24 sm:pb-8">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-tk-text-secondary">
           <div className="text-center sm:text-left">
             <p className="font-bold text-tk-text-primary">TEKART Smart Living Storefront</p>
@@ -75,7 +77,7 @@ const PublicLayout = () => {
           </div>
           
           <div className="flex gap-4">
-            <a href="tel:+919384180516" className="hover:text-tk-blue-deep transition-colors">Call Store</a>
+            <a href="tel:+917339433225" className="hover:text-tk-blue-deep transition-colors">Call Store</a>
             <span>·</span>
             <a href="https://wa.me/919384180516" className="hover:text-tk-blue-deep transition-colors">WhatsApp</a>
             <span>·</span>
@@ -110,30 +112,33 @@ const PublicLayout = () => {
 
 function App() {
   return (
-    <CollectionProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Storefront Routes */}
-          <Route path="/" element={<PublicLayout />}>
-            <Route index element={<Home />} />
-            <Route path="category/:slug" element={<CategoryPage />} />
-            <Route path="product/:slug" element={<ProductDetail />} />
-            <Route path="search" element={<Home />} /> {/* Renders home page with active search modal */}
-            <Route path="contact" element={<Contact />} />
-          </Route>
+    <ThemeProvider>
+      <CollectionProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Storefront Routes */}
+            <Route path="/" element={<PublicLayout />}>
+              <Route index element={<Home />} />
+              <Route path="category/:slug" element={<CategoryPage />} />
+              <Route path="product/:slug" element={<ProductDetail />} />
+              <Route path="search" element={<Home />} /> {/* Renders home page with active search modal */}
+              <Route path="contact" element={<Contact />} />
+            </Route>
 
-          {/* Secure Admin Portal Routes */}
-          <Route path="/owner/login" element={<OwnerLogin />} />
-          <Route path="/owner" element={<OwnerLayout />}>
-            <Route index element={<OwnerDashboard />} />
-            <Route path="products" element={<ProductList />} />
-            <Route path="products/new" element={<ProductForm />} />
-            <Route path="products/:id/edit" element={<ProductForm />} />
-            <Route path="upload" element={<UploadWizard />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </CollectionProvider>
+            {/* Secure Admin Portal Routes */}
+            <Route path="/owner/login" element={<OwnerLogin />} />
+            <Route path="/owner/reset-password" element={<ResetPassword />} />
+            <Route path="/owner" element={<OwnerLayout />}>
+              <Route index element={<OwnerDashboard />} />
+              <Route path="products" element={<ProductList />} />
+              <Route path="products/new" element={<ProductForm />} />
+              <Route path="products/:id/edit" element={<ProductForm />} />
+              <Route path="upload" element={<UploadWizard />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </CollectionProvider>
+    </ThemeProvider>
   );
 }
 

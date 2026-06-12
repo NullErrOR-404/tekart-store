@@ -37,7 +37,15 @@ export const CategoryPage: React.FC = () => {
             .order('priority', { ascending: true });
             
           if (prodData) {
-            setProducts(prodData);
+            // Push out-of-stock items (stock <= 0) to the end of the list
+            const sortedProds = [...prodData].sort((a, b) => {
+              const aAvailable = a.stock > 0;
+              const bAvailable = b.stock > 0;
+              if (aAvailable && !bAvailable) return -1;
+              if (!aAvailable && bAvailable) return 1;
+              return a.priority - b.priority;
+            });
+            setProducts(sortedProds);
           } else {
             setProducts([]);
           }
@@ -62,7 +70,7 @@ export const CategoryPage: React.FC = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pt-6">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="aspect-[4/5] bg-white border border-tk-border rounded-tk-card p-4 space-y-4 animate-pulse">
+            <div key={i} className="aspect-[4/5] bg-white dark:bg-tk-surface border border-tk-border rounded-tk-card p-4 space-y-4 animate-pulse">
               <div className="w-full h-2/3 bg-tk-blue-pale rounded-tk-input"></div>
               <div className="h-4 bg-tk-blue-pale rounded w-3/4"></div>
             </div>
@@ -99,7 +107,7 @@ export const CategoryPage: React.FC = () => {
       </div>
 
       {/* Category Hero / Header */}
-      <div className="bg-white border border-tk-border rounded-tk-modal p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center gap-8">
+      <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-modal p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center gap-8">
         {category.cover_image && (
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-tk-card overflow-hidden shrink-0 bg-tk-blue-pale border border-tk-border shadow-sm">
             <img 
@@ -132,7 +140,7 @@ export const CategoryPage: React.FC = () => {
         </h2>
 
         {products.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-tk-border rounded-tk-card bg-white">
+          <div className="text-center py-20 border border-dashed border-tk-border rounded-tk-card bg-white dark:bg-tk-surface">
             <p className="text-sm text-tk-text-secondary font-medium">No products available in this category yet.</p>
             <p className="text-xs text-tk-text-tertiary mt-1">We are updating our boutique showroom, check back soon!</p>
           </div>

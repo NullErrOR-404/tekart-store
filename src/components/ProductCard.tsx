@@ -17,7 +17,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
   return (
     <Link to={`/product/${product.slug}`} className="block group">
       <motion.div
-        className="bg-white rounded-tk-card border border-tk-border overflow-hidden flex flex-col h-full transition-all duration-300 group-hover:shadow-[0_8px_24px_rgba(24,50,184,0.06)]"
+        className="bg-white dark:bg-tk-surface rounded-tk-card border border-tk-border overflow-hidden flex flex-col h-full transition-all duration-300 group-hover:shadow-[0_8px_24px_rgba(24,50,184,0.06)]"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -28,24 +28,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
             src={product.cover_image}
             alt={product.name}
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.018]"
+            className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.018] ${
+              product.stock <= 0 ? 'grayscale contrast-75 brightness-75 opacity-60' : ''
+            }`}
           />
 
           {/* Badges top-left */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-            {product.badge && (
+            {product.stock > 0 && product.badge && (
               <span className="bg-tk-blue-deep text-white text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-tk-chip shadow-sm">
                 {product.badge}
               </span>
             )}
-            {discount > 0 && (
+            {product.stock > 0 && discount > 0 && (
               <span className="bg-tk-wa text-white text-[10px] font-bold py-1 px-2 rounded-tk-chip shadow-sm">
                 -{discount}%
               </span>
             )}
+            {product.stock > 0 && product.stock <= 3 && (
+              <span className="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-tk-chip shadow-sm animate-pulse">
+                Selling Fast
+              </span>
+            )}
           </div>
 
-
+          {/* Ask for Availability Center Overlay */}
+          {product.stock <= 0 && (
+            <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-10 p-4">
+              <span className="bg-white/95 text-tk-text-primary text-[10px] font-bold uppercase tracking-wider py-2 px-3.5 rounded shadow-md border border-tk-border text-center">
+                Ask for Availability
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Card Body */}
@@ -74,11 +88,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
             </div>
 
             {/* Micro Availability Chip */}
-            {product.in_stock ? (
-              <span className="inline-flex items-center text-[11px] font-medium text-tk-wa">
-                <span className="w-1.5 h-1.5 rounded-full bg-tk-wa mr-1 animate-pulse"></span>
-                In Stock
-              </span>
+            {product.stock > 0 ? (
+              product.stock <= 3 ? (
+                <span className="inline-flex items-center text-[11px] font-semibold text-red-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-600 mr-1 animate-pulse"></span>
+                  Low Stock ({product.stock} left)
+                </span>
+              ) : (
+                <span className="inline-flex items-center text-[11px] font-medium text-tk-wa">
+                  <span className="w-1.5 h-1.5 rounded-full bg-tk-wa mr-1 animate-pulse"></span>
+                  In Stock
+                </span>
+              )
             ) : (
               <span className="inline-flex items-center text-[11px] font-medium text-tk-text-secondary">
                 <span className="w-1.5 h-1.5 rounded-full bg-tk-text-secondary mr-1"></span>
