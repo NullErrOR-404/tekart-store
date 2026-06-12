@@ -213,14 +213,22 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
                 stiffness: 300,
                 damping: 30
               }}
-              drag={scale > 1}
-              dragConstraints={{
-                left: -maxDragX,
-                right: maxDragX,
-                top: -maxDragY,
-                bottom: maxDragY
+              drag={scale > 1 ? true : "x"}
+              dragConstraints={
+                scale > 1
+                  ? { left: -maxDragX, right: maxDragX, top: -maxDragY, bottom: maxDragY }
+                  : { left: 0, right: 0 }
+              }
+              dragElastic={scale > 1 ? 0.15 : 0.6}
+              onDragEnd={(_, info) => {
+                if (scale > 1) return;
+                const swipeThreshold = 50;
+                if (info.offset.x < -swipeThreshold) {
+                  handleNext();
+                } else if (info.offset.x > swipeThreshold) {
+                  handlePrev();
+                }
               }}
-              dragElastic={0.15}
               onDoubleClick={handleDoubleTap}
             />
           </div>

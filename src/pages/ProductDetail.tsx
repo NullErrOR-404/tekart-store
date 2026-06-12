@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, PhoneCall, Award, ShieldCheck, HelpCircle, ZoomIn } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, PhoneCall, Award, ShieldCheck, HelpCircle, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
 import { useCollection } from '@/context/CollectionContext';
 import { ProductCard } from '@/components/ProductCard';
@@ -121,35 +121,75 @@ export const ProductDetail: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
         {/* Left Column: Image Gallery */}
         <div className="md:col-span-6 space-y-4">
-          <div 
-            onClick={() => setIsLightboxOpen(true)}
-            className="relative aspect-[4/5] bg-white dark:bg-tk-surface border border-tk-border rounded-tk-modal overflow-hidden shadow-sm cursor-zoom-in group"
-          >
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={activeImgIndex}
-                src={images[activeImgIndex]}
-                alt={`${product.name} - View ${activeImgIndex + 1}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              />
-            </AnimatePresence>
+          {/* Main gallery wrapper */}
+          <div className="relative group">
+            <motion.div 
+              onTap={() => setIsLightboxOpen(true)}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.6}
+              onDragEnd={(_, info) => {
+                const swipeThreshold = 50;
+                if (info.offset.x < -swipeThreshold) {
+                  setActiveImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+                } else if (info.offset.x > swipeThreshold) {
+                  setActiveImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+                }
+              }}
+              className="relative aspect-[4/5] bg-white dark:bg-tk-surface border border-tk-border rounded-tk-modal overflow-hidden shadow-sm cursor-zoom-in select-none touch-pan-y"
+            >
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={activeImgIndex}
+                  src={images[activeImgIndex]}
+                  alt={`${product.name} - View ${activeImgIndex + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-300 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </AnimatePresence>
 
-            {/* Hover overlay with zoom prompt */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center z-10">
-              <span className="opacity-0 group-hover:opacity-100 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold px-3 py-2 rounded-full flex items-center gap-1.5 transition-all duration-300 scale-95 group-hover:scale-100 shadow-md">
-                <ZoomIn className="h-4 w-4" />
-                <span>Click to Zoom</span>
-              </span>
-            </div>
+              {/* Hover overlay with zoom prompt */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center z-10 pointer-events-none">
+                <span className="opacity-0 group-hover:opacity-100 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold px-3 py-2 rounded-full flex items-center gap-1.5 transition-all duration-300 scale-95 group-hover:scale-100 shadow-md">
+                  <ZoomIn className="h-4 w-4" />
+                  <span>Click to Zoom</span>
+                </span>
+              </div>
 
-            {product.badge && (
-              <span className="absolute top-4 left-4 bg-tk-blue-deep text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-tk-chip shadow-sm z-20">
-                {product.badge}
-              </span>
+              {product.badge && (
+                <span className="absolute top-4 left-4 bg-tk-blue-deep text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-tk-chip shadow-sm z-20 pointer-events-none">
+                  {product.badge}
+                </span>
+              )}
+            </motion.div>
+
+            {/* Left and Right navigation arrows for the main gallery (visible on hover / mobile tap) */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImgIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-25 p-2 rounded-full bg-white/90 dark:bg-tk-surface/90 hover:bg-white dark:hover:bg-tk-surface text-tk-text-primary border border-tk-border shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer flex items-center justify-center max-sm:opacity-100"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-4.5 w-4.5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImgIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-25 p-2 rounded-full bg-white/90 dark:bg-tk-surface/90 hover:bg-white dark:hover:bg-tk-surface text-tk-text-primary border border-tk-border shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer flex items-center justify-center max-sm:opacity-100"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-4.5 w-4.5" />
+                </button>
+              </>
             )}
           </div>
 
