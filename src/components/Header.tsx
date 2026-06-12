@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
               
               <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-input shadow-lg py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
                 <button
-                  onClick={() => setTheme('light')}
+                  onClick={(e) => setTheme('light', e)}
                   className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
                     theme === 'light' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
                   }`}
@@ -109,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                   <span>Light</span>
                 </button>
                 <button
-                  onClick={() => setTheme('dark')}
+                  onClick={(e) => setTheme('dark', e)}
                   className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
                     theme === 'dark' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
                   }`}
@@ -118,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                   <span>Dark</span>
                 </button>
                 <button
-                  onClick={() => setTheme('system')}
+                  onClick={(e) => setTheme('system', e)}
                   className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
                     theme === 'system' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
                   }`}
@@ -261,7 +261,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
               </span>
               <div className="flex bg-tk-blue-pale dark:bg-tk-surface-2 p-1 rounded-tk-input border border-tk-border">
                 <button
-                  onClick={() => setTheme('light')}
+                  onClick={(e) => setTheme('light', e)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-tk-chip text-[11px] font-semibold transition-all ${
                     theme === 'light'
                       ? 'bg-white dark:bg-tk-surface text-tk-blue-deep shadow-sm'
@@ -272,7 +272,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                   <span>Light</span>
                 </button>
                 <button
-                  onClick={() => setTheme('dark')}
+                  onClick={(e) => setTheme('dark', e)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-tk-chip text-[11px] font-semibold transition-all ${
                     theme === 'dark'
                       ? 'bg-white dark:bg-tk-surface text-tk-blue-deep shadow-sm'
@@ -283,7 +283,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                   <span>Dark</span>
                 </button>
                 <button
-                  onClick={() => setTheme('system')}
+                  onClick={(e) => setTheme('system', e)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-tk-chip text-[11px] font-semibold transition-all ${
                     theme === 'system'
                       ? 'bg-white dark:bg-tk-surface text-tk-blue-deep shadow-sm'

@@ -55,7 +55,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
           {/* Ask for Availability Center Overlay */}
           {product.stock <= 0 && (
             <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-10 p-4">
-              <span className="bg-white/95 text-tk-text-primary text-[10px] font-bold uppercase tracking-wider py-2 px-3.5 rounded shadow-md border border-tk-border text-center">
+              <span className="bg-white/95 dark:bg-tk-surface-2/95 text-tk-text-primary text-[10px] font-bold uppercase tracking-wider py-2 px-3.5 rounded shadow-md border border-tk-border text-center">
                 Ask for Availability
               </span>
             </div>
