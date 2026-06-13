@@ -75,7 +75,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
           </h3>
 
           {/* Price & In-stock Row */}
-          <div className="mt-auto flex items-baseline justify-between pt-2 border-t border-tk-border/50">
+          <div className="mt-auto flex flex-col md:flex-row md:items-baseline md:justify-between pt-2 border-t border-tk-border/50 gap-1 md:gap-0">
             <div className="flex items-center gap-2">
               <span className="font-sans font-bold text-base md:text-lg text-tk-text-primary">
                 ₹{product.price.toLocaleString('en-IN')}
@@ -90,18 +90,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
             {/* Micro Availability Chip */}
             {product.stock > 0 ? (
               product.stock <= 3 ? (
-                <span className="inline-flex items-center text-[11px] font-semibold text-red-600">
+                <span className="inline-flex items-center text-[11px] font-semibold text-red-600 self-start md:self-auto">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-600 mr-1 animate-pulse"></span>
                   Low Stock ({product.stock} left)
                 </span>
               ) : (
-                <span className="inline-flex items-center text-[11px] font-medium text-tk-wa">
+                <span className="inline-flex items-center text-[11px] font-medium text-tk-wa self-start md:self-auto">
                   <span className="w-1.5 h-1.5 rounded-full bg-tk-wa mr-1 animate-pulse"></span>
                   In Stock
                 </span>
               )
             ) : (
-              <span className="inline-flex items-center text-[11px] font-medium text-tk-text-secondary">
+              <span className="inline-flex items-center text-[11px] font-medium text-tk-text-secondary self-start md:self-auto">
                 <span className="w-1.5 h-1.5 rounded-full bg-tk-text-secondary mr-1"></span>
                 Enquire
               </span>
