@@ -203,8 +203,26 @@ export const ProductDetail: React.FC = () => {
     );
   }
 
+  // Safely parse gallery field
+  const parseGallery = (galleryVal: any): string[] => {
+    if (!galleryVal) return [];
+    if (Array.isArray(galleryVal)) return galleryVal;
+    if (typeof galleryVal === 'string') {
+      const trimmed = galleryVal.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed;
+        } catch (e) {}
+      }
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
   // Combine cover image and gallery array for full list
-  const images = [product.cover_image, ...(product.gallery || [])].filter(Boolean);
+  const parsedGallery = parseGallery(product.gallery);
+  const images = [product.cover_image, ...parsedGallery].filter(Boolean);
   const category = categories.find(c => c.id === product.category_id);
 
   const handleWhatsAppEnquiry = () => {
@@ -309,6 +327,7 @@ export const ProductDetail: React.FC = () => {
                 <button
                   key={idx}
                   onClick={() => setActiveImgIndex(idx)}
+                  onMouseEnter={() => setActiveImgIndex(idx)}
                   className={`relative w-20 aspect-[4/5] rounded-tk-input overflow-hidden border bg-tk-blue-pale shrink-0 transition-all ${
                     idx === activeImgIndex 
                       ? 'border-tk-blue-deep ring-1 ring-tk-blue-deep' 

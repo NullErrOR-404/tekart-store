@@ -123,6 +123,16 @@ export const OwnerDashboard: React.FC = () => {
                 <span>Add New Product</span>
               </Link>
 
+              <a
+                href="https://tekart-billing.vercel.app/?tab=Purchases"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 px-4 rounded-tk-input text-xs flex items-center justify-center gap-2 transition-all shadow-sm"
+              >
+                <ShoppingBasket className="h-4 w-4" />
+                <span>Restock Inventory (Billing)</span>
+              </a>
+
               <Link
                 to="/owner/upload"
                 className="w-full bg-tk-blue-light hover:bg-tk-blue-strong/20 text-tk-blue-deep font-bold py-3 px-4 rounded-tk-input text-xs flex items-center justify-center gap-2 transition-all"

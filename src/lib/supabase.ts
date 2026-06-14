@@ -34,6 +34,7 @@ export interface Product {
   description?: string;
   category_id: string;
   price: number;
+  buying_price?: number;
   old_price?: number;
   stock: number;
   in_stock: boolean; // client computed or generated
@@ -114,6 +115,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Handcrafted from genuine 8mm black obsidian stones, this bracelet adds a touch of modern minimalism. Believed to provide protective energy. Fitted with a secure, stretchable cord for comfort wear. Unisex.',
     category_id: 'cat-1',
     price: 899.00,
+    buying_price: 450.00,
     old_price: 1200.00,
     stock: 15,
     in_stock: true,
@@ -140,6 +142,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Made from a premium wool-acrylic blend for itch-free warmth. Finished with elegant ribbed borders. Soft, cozy, and long enough to wrap twice.',
     category_id: 'cat-1',
     price: 1499.00,
+    buying_price: 750.00,
     old_price: 1999.00,
     stock: 8,
     in_stock: true,
@@ -166,6 +169,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Escape the noise and immerse yourself in studio-grade audio quality. The TEKART Aura headphones feature high-fidelity 40mm dynamic drivers that deliver punchy bass, pristine mids, and sparkly highs. Active Noise Cancellation neutralizes low-frequency ambient sounds. Includes Bluetooth 5.2, AAC/SBC decoding, and up to 40 hours of playtime with ANC active.',
     category_id: 'cat-2',
     price: 8999.00,
+    buying_price: 4500.00,
     old_price: 12999.00,
     stock: 12,
     in_stock: true,
@@ -193,6 +197,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Designed for the modern essentials. Cut from premium vegetable-tanned leather, this MagSafe wallet snaps instantly onto the back of your iPhone. Features a smart pull-tab mechanism that easily ejects up to 3 cards. RFDI shielded to protect your banking details.',
     category_id: 'cat-2',
     price: 1499.00,
+    buying_price: 750.00,
     old_price: 1999.00,
     stock: 20,
     in_stock: true,
@@ -217,6 +222,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Oud Noir is a deep, sensual, and highly sophisticated oriental woody perfume. Centered around rare Cambodian agarwood, it starts with an aromatic blend of rich saffron and cardamom, cascading down to rose petals, and drying down to warm amber, leathergris, and patchouli. Long lasting projection.',
     category_id: 'cat-3',
     price: 3499.00,
+    buying_price: 1800.00,
     old_price: 4999.00,
     stock: 3,
     in_stock: true,
@@ -244,6 +250,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'An elegant day cologne starting with a bright, crisp splash of Calabrian bergamot and grapefruit. The heart unfolds notes of geranium and ginger, grounding in a rich, woody foundation of atlas cedarwood and vetiver. Energizing and premium.',
     category_id: 'cat-3',
     price: 2899.00,
+    buying_price: 1450.00,
     old_price: 3500.00,
     stock: 10,
     in_stock: true,
@@ -268,6 +275,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Formulated with organic citrus peels and eucalyptus leaf oil. Free from aluminum, parabens, and synthetic dyes. Provides 24-hour protection while allowing the skin to breathe naturally, leaving a fresh clean trace.',
     category_id: 'cat-4',
     price: 499.00,
+    buying_price: 250.00,
     old_price: 599.00,
     stock: 25,
     in_stock: true,
@@ -292,6 +300,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     description: 'Our matte velvet liquid lipstick glides on effortlessly as a cream and dries down into a weightless, smudge-proof velvet coating. Enriched with avocado oil and vitamin E to prevent chapping. High-impact color that lasts for 12 hours.',
     category_id: 'cat-5',
     price: 899.00,
+    buying_price: 450.00,
     old_price: 1200.00,
     stock: 0, // Out of stock for testing toggles
     in_stock: false,

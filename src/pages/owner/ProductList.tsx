@@ -9,9 +9,12 @@ import {
   Star, 
   CheckCircle2, 
   XCircle, 
-  ExternalLink 
+  ExternalLink,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
+import { replaceEmojis } from '@/lib/emoji';
 
 export const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,6 +22,32 @@ export const ProductList: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [editingStockProdId, setEditingStockProdId] = useState<string | null>(null);
+  const [editingStockVal, setEditingStockVal] = useState<string>('');
+
+  const handleSaveInlineStock = async (id: string) => {
+    const newStock = parseInt(editingStockVal);
+    if (isNaN(newStock) || newStock < 0) {
+      alert('Please enter a valid stock quantity.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('products')
+      .update({ stock: newStock })
+      .eq('id', id);
+
+    if (!error) {
+      setProducts(products.map(p => 
+        p.id === id 
+          ? { ...p, stock: newStock, in_stock: newStock > 0 } 
+          : p
+      ));
+      setEditingStockProdId(null);
+    } else {
+      alert(`Failed to update stock: ${error.message}`);
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -48,8 +77,18 @@ export const ProductList: React.FC = () => {
   };
 
   const handleToggleStock = async (id: string, currentStock: number) => {
-    // If currentStock > 0, we toggle to 0 (out of stock). Otherwise, we toggle to 10 (in stock).
-    const newStock = currentStock > 0 ? 0 : 10;
+    const savedStocksStr = localStorage.getItem('tk_prev_stocks') || '{}';
+    const savedStocks = JSON.parse(savedStocksStr);
+
+    let newStock = 0;
+    if (currentStock > 0) {
+      savedStocks[id] = currentStock;
+      localStorage.setItem('tk_prev_stocks', JSON.stringify(savedStocks));
+      newStock = 0;
+    } else {
+      newStock = savedStocks[id] || 10;
+    }
+
     const { error } = await supabase
       .from('products')
       .update({ stock: newStock })
@@ -61,6 +100,22 @@ export const ProductList: React.FC = () => {
           ? { ...p, stock: newStock, in_stock: newStock > 0 } 
           : p
       ));
+    }
+  };
+
+  const handleToggleArchive = async (id: string, currentTags: string[]) => {
+    const isArchived = currentTags.includes('archived');
+    const newTags = isArchived 
+      ? currentTags.filter(t => t !== 'archived') 
+      : [...currentTags, 'archived'];
+
+    const { error } = await supabase
+      .from('products')
+      .update({ tags: newTags })
+      .eq('id', id);
+
+    if (!error) {
+      setProducts(products.map(p => p.id === id ? { ...p, tags: newTags } : p));
     }
   };
 
@@ -188,17 +243,28 @@ export const ProductList: React.FC = () => {
                             <span className="font-semibold text-tk-text-primary block truncate hover:text-tk-blue-deep">
                               {prod.name}
                             </span>
-                            {prod.brand && (
-                              <span className="text-[10px] text-tk-text-secondary block">Brand: {prod.brand}</span>
-                            )}
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              {prod.brand && (
+                                <span className="text-[10px] text-tk-text-secondary block">Brand: {prod.brand}</span>
+                              )}
+                              {prod.tags?.includes('archived') && (
+                                <span className="bg-red-50 text-red-600 text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-red-200">
+                                  Archived
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
 
                       {/* Category */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-medium text-tk-text-primary">
-                          {cat ? `${cat.icon} ${cat.name}` : '—'}
+                        <span className="font-medium text-tk-text-primary inline-flex items-center gap-1.5">
+                          {cat ? (
+                            <>
+                              {replaceEmojis(cat.icon || '')} <span>{cat.name}</span>
+                            </>
+                          ) : '—'}
                         </span>
                       </td>
 
@@ -209,40 +275,82 @@ export const ProductList: React.FC = () => {
 
                       {/* Price */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-tk-text-primary">
-                            ₹{prod.price.toLocaleString('en-IN')}
+                        <div className="flex flex-col text-left">
+                          <span className="font-semibold text-tk-text-primary">
+                            Retail: ₹{prod.price.toLocaleString('en-IN')}
                           </span>
+                          {prod.buying_price !== undefined && prod.buying_price !== null && (
+                            <span className="text-[10px] text-purple-600 font-bold mt-0.5">
+                              Wholesale: ₹{prod.buying_price.toLocaleString('en-IN')}
+                            </span>
+                          )}
                           {prod.old_price && (
                             <span className="text-[10px] text-tk-text-tertiary line-through">
-                              ₹{prod.old_price.toLocaleString('en-IN')}
+                              Retail Old: ₹{prod.old_price.toLocaleString('en-IN')}
                             </span>
                           )}
                         </div>
                       </td>
 
-                      {/* Stock Toggle */}
+                      {/* Stock Toggle / Inline Edit */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => handleToggleStock(prod.id, prod.stock)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full font-bold transition-all text-[10px] cursor-pointer ${
-                            prod.stock > 3
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                              : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
-                          }`}
-                        >
-                          {prod.stock > 0 ? (
-                            <>
-                              <CheckCircle2 className="h-3 w-3" />
-                              <span>{prod.stock <= 3 ? `Low Stock (${prod.stock})` : `In Stock (${prod.stock})`}</span>
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="h-3 w-3" />
-                              <span>Enquire Only</span>
-                            </>
-                          )}
-                        </button>
+                        {editingStockProdId === prod.id ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <input
+                              type="number"
+                              value={editingStockVal}
+                              onChange={(e) => setEditingStockVal(e.target.value)}
+                              className="w-16 px-1.5 py-1 bg-white dark:bg-tk-surface-2 border border-tk-border rounded text-center text-xs text-tk-text-primary focus:outline-none focus:ring-1 focus:ring-tk-blue-deep font-bold"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleSaveInlineStock(prod.id)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-2 py-1.5 rounded cursor-pointer transition-colors"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingStockProdId(null)}
+                              className="bg-gray-100 dark:bg-tk-surface-3 hover:bg-gray-200 text-tk-text-secondary font-bold text-[10px] px-2 py-1.5 rounded border border-tk-border cursor-pointer transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleToggleStock(prod.id, prod.stock)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full font-bold transition-all text-[10px] cursor-pointer ${
+                                prod.stock > 3
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                              }`}
+                            >
+                              {prod.stock > 0 ? (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  <span>{prod.stock <= 3 ? `Low Stock (${prod.stock})` : `In Stock (${prod.stock})`}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-3 w-3" />
+                                  <span>Enquire Only</span>
+                                </>
+                              )}
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                setEditingStockProdId(prod.id);
+                                setEditingStockVal(prod.stock.toString());
+                              }}
+                              className="p-1.5 rounded-full hover:bg-tk-blue-light text-tk-text-secondary hover:text-tk-blue-deep transition-all cursor-pointer border border-transparent hover:border-tk-border"
+                              title="Edit Stock Quantity"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </td>
 
                       {/* Featured Toggle */}
@@ -272,6 +380,22 @@ export const ProductList: React.FC = () => {
                             <ExternalLink className="h-4 w-4" />
                           </Link>
                           
+                          <button
+                            onClick={() => handleToggleArchive(prod.id, prod.tags || [])}
+                            className={`p-1.5 rounded-full transition-colors ${
+                              prod.tags?.includes('archived')
+                                ? 'bg-amber-50 text-amber-600'
+                                : 'hover:bg-tk-blue-light text-tk-text-secondary hover:text-tk-blue-deep'
+                            }`}
+                            title={prod.tags?.includes('archived') ? 'Unarchive (Show on Website)' : 'Archive (Hide from Website)'}
+                          >
+                            {prod.tags?.includes('archived') ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+
                           <Link
                             to={`/owner/products/${prod.id}/edit`}
                             className="p-1.5 rounded-full hover:bg-tk-blue-light text-tk-text-secondary hover:text-tk-blue-deep transition-colors"

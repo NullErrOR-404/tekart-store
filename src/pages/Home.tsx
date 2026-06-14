@@ -5,6 +5,7 @@ import { supabase, type Product, type Category } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
+import { replaceEmojis } from '@/lib/emoji';
 
 export const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -98,6 +99,7 @@ export const Home: React.FC = () => {
         .select('*')
         .order('priority', { ascending: true });
       if (prodData) {
+        const activeProds = prodData.filter((p: Product) => !p.tags || !p.tags.includes('archived'));
         // Read click stats from localStorage
         const statsStr = localStorage.getItem('tk_popular_clicks');
         let stats: Record<string, number> = {};
@@ -110,7 +112,7 @@ export const Home: React.FC = () => {
         }
 
         // Sort products: In-stock first, then by click popularity, then by priority
-        const sortedProds = [...prodData].sort((a, b) => {
+        const sortedProds = [...activeProds].sort((a, b) => {
           const aAvailable = a.stock > 0;
           const bAvailable = b.stock > 0;
           if (aAvailable && !bAvailable) return -1;
@@ -323,7 +325,7 @@ export const Home: React.FC = () => {
               onClick={() => navigate(`/category/${cat.slug}`)}
               className="flex items-center gap-2 bg-white dark:bg-tk-surface hover:bg-tk-blue-light dark:hover:bg-tk-surface-2 hover:text-tk-blue-deep border border-tk-border hover:border-tk-blue-strong px-5 py-3 rounded-full font-medium text-sm text-tk-text-primary transition-all whitespace-nowrap shadow-sm shrink-0"
             >
-              <span className="text-base">{cat.icon}</span>
+              <span className="text-base flex items-center justify-center">{replaceEmojis(cat.icon || '')}</span>
               <span>{cat.name}</span>
             </button>
           ))}

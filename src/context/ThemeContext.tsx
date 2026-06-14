@@ -34,7 +34,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Capture click coordinates, falling back to center of the viewport
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
-    if (event) {
+    if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
       x = event.clientX;
       y = event.clientY;
     }

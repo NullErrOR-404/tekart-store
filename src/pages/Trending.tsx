@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
+import { replaceEmojis } from '@/lib/emoji';
 
 export const TrendingPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -28,7 +29,8 @@ export const TrendingPage: React.FC = () => {
         .order('priority', { ascending: true });
 
       if (prodData) {
-        setProducts(prodData);
+        const activeProds = prodData.filter((p: Product) => !p.tags || !p.tags.includes('archived'));
+        setProducts(activeProds);
       } else {
         setProducts([]);
       }
@@ -120,7 +122,7 @@ export const TrendingPage: React.FC = () => {
       {/* Category Hero / Header */}
       <div className="bg-white dark:bg-tk-surface border border-tk-border rounded-tk-modal p-6 md:p-10 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center gap-8">
         <div className="w-24 h-24 md:w-32 md:h-32 rounded-tk-card overflow-hidden shrink-0 bg-tk-blue-pale border border-tk-border shadow-sm flex items-center justify-center text-4xl">
-          🔥
+          {replaceEmojis("🔥")}
         </div>
         
         <div className="space-y-2 text-center md:text-left">

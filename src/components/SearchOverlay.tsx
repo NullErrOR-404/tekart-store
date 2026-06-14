@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Search, Clock, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, type Product, type Category } from '@/lib/supabase';
+import { replaceEmojis } from '@/lib/emoji';
 
 // Helper functions for Typo-Tolerant (Fuzzy) Search
 function getLevenshteinDistance(a: string, b: string): number {
@@ -152,8 +153,9 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
         const { data: catData } = await supabase.from('categories').select('*').order('priority', { ascending: true });
         if (catData) setCategories(catData);
 
-        const { data: prodData } = await supabase.from('products').select('name').order('priority', { ascending: true });
+        const { data: prodData } = await supabase.from('products').select('name, tags').order('priority', { ascending: true });
         if (prodData) {
+          const activeProds = prodData.filter((p: any) => !p.tags || !p.tags.includes('archived'));
           const statsStr = localStorage.getItem('tk_popular_clicks');
           let stats: Record<string, number> = {};
           if (statsStr) {
@@ -164,7 +166,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
             }
           }
           // Sort products by user traffic (clicked counts)
-          const sorted = [...prodData].sort((a, b) => {
+          const sorted = [...activeProds].sort((a, b) => {
             const clicksA = stats[a.name] || 0;
             const clicksB = stats[b.name] || 0;
             return clicksB - clicksA;
@@ -204,7 +206,8 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
         const queryLower = query.toLowerCase().trim();
 
         // 1. Calculate fuzzy match scores for all products and filter by threshold (62% similarity)
-        const scoredProducts = data
+        const activeProds = data.filter((p: Product) => !p.tags || !p.tags.includes('archived'));
+        const scoredProducts = activeProds
           .map((product: Product) => {
             const score = getProductFuzzyScore(queryLower, product);
             return { product, score };
@@ -402,7 +405,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
                     }}
                     className="flex items-center justify-between w-full text-left text-sm text-tk-text-primary hover:text-tk-blue-deep py-2 pl-2 border-l-2 border-transparent hover:border-tk-blue-bright hover:bg-tk-blue-light/30 transition-all rounded"
                   >
-                    <span>{cat.icon} {cat.name}</span>
+                    <span className="flex items-center gap-1.5">{replaceEmojis(cat.icon || '')} <span>{cat.name}</span></span>
                     <ArrowRight className="h-4 w-4 text-tk-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}

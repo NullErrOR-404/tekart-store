@@ -6,6 +6,7 @@ import tekartLogo from '@/assets/tekart-logo.png';
 import { supabase, type Category } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
+import { replaceEmojis } from '@/lib/emoji';
 
 const MotionLink = motion(Link);
 
@@ -77,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                 alt="TEKART - SMART LIVING"
                 whileHover={{ scale: 1.05, y: -1 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                className="h-9 md:h-11 w-auto object-contain cursor-pointer transition-all duration-300"
+                className="h-10 md:h-13 w-auto object-contain cursor-pointer transition-all duration-300"
                 style={resolvedTheme === 'dark' ? { filter: 'brightness(0) invert(1)' } : undefined}
               />
             </Link>
@@ -85,48 +86,23 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2 z-20">
-            {/* Theme Toggle Dropdown */}
-            <div className="hidden sm:block relative group">
+            {/* Theme Toggle Button */}
+            <div className="relative">
               <motion.button
+                onClick={(e) => {
+                  if (resolvedTheme === 'dark') {
+                    setTheme('light', e);
+                  } else {
+                    setTheme('dark', e);
+                  }
+                }}
                 whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2 text-tk-text-primary hover:text-tk-blue-deep transition-colors duration-200 cursor-pointer"
                 aria-label="Toggle theme"
               >
-                {theme === 'light' && <Sun className="h-5 w-5" />}
-                {theme === 'dark' && <Moon className="h-5 w-5" />}
-                {theme === 'system' && <Monitor className="h-5 w-5" />}
+                {resolvedTheme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </motion.button>
-              
-              <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-tk-surface border border-tk-border rounded-tk-input shadow-lg py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
-                <button
-                  onClick={(e) => setTheme('light', e)}
-                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
-                    theme === 'light' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
-                  }`}
-                >
-                  <Sun className="h-3.5 w-3.5" />
-                  <span>Light</span>
-                </button>
-                <button
-                  onClick={(e) => setTheme('dark', e)}
-                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
-                    theme === 'dark' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
-                  }`}
-                >
-                  <Moon className="h-3.5 w-3.5" />
-                  <span>Dark</span>
-                </button>
-                <button
-                  onClick={(e) => setTheme('system', e)}
-                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-tk-blue-pale dark:hover:bg-tk-surface-2 ${
-                    theme === 'system' ? 'text-tk-blue-deep bg-tk-blue-light/50' : 'text-tk-text-secondary'
-                  }`}
-                >
-                  <Monitor className="h-3.5 w-3.5" />
-                  <span>System</span>
-                </button>
-              </div>
             </div>
 
             {/* Search */}
@@ -238,8 +214,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchOpen, onCollectionOpen }
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                         className="w-full text-left block text-sm font-medium text-tk-text-secondary hover:text-tk-blue-deep py-2 pl-2 border-l-2 border-transparent hover:border-tk-blue-bright transition-colors duration-200 cursor-pointer"
                       >
-                        <span className="mr-2">{category.icon}</span>
-                        {category.name}
+                        <span className="mr-2 inline-flex items-center justify-center align-middle">{replaceEmojis(category.icon || '')}</span>
+                        <span>{category.name}</span>
                       </motion.button>
                     ))
                   )}

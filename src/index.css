@@ -6,16 +6,16 @@
   --tk-blue-deep: #1832B8;
   --tk-blue-mid: #2D5BE3;
   --tk-blue-bright: #4D8FFF;
-  --tk-blue-light: #EEF2FF;
-  --tk-blue-pale: #F5F7FF;
-  --tk-text-primary: #0F0F12;
-  --tk-text-secondary: #5A5F7A;
-  --tk-text-tertiary: #9BA0B8;
-  --tk-bg: #F5F7FF;
+  --tk-blue-light: #FAF8F2;
+  --tk-blue-pale: #FDFDFB;
+  --tk-text-primary: #1C1B17;
+  --tk-text-secondary: #656257;
+  --tk-text-tertiary: #A5A194;
+  --tk-bg: #FAF7F0;
   --tk-surface: #FFFFFF;
-  --tk-surface-2: #EEF2FF;
-  --tk-border: rgba(24, 50, 184, 0.10);
-  --tk-border-strong: rgba(24, 50, 184, 0.20);
+  --tk-surface-2: #F3EFE0;
+  --tk-border: rgba(28, 27, 23, 0.08);
+  --tk-border-strong: rgba(28, 27, 23, 0.15);
   --tk-wa: #25D366;
   --tk-wa-dark: #1DA851;
 }

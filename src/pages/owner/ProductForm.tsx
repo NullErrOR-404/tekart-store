@@ -20,6 +20,7 @@ export const ProductForm: React.FC = () => {
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');
   const [price, setPrice] = useState('');
+  const [buyingPrice, setBuyingPrice] = useState('');
   const [oldPrice, setOldPrice] = useState('');
   const [stock, setStock] = useState('10');
   const [featured, setFeatured] = useState(false);
@@ -32,6 +33,7 @@ export const ProductForm: React.FC = () => {
   const [priority, setPriority] = useState('0');
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
+  const [isGalleryUploading, setIsGalleryUploading] = useState(false);
 
   // Loading categories and product if edit mode
   useEffect(() => {
@@ -60,12 +62,29 @@ export const ProductForm: React.FC = () => {
           setCategoryId(prod.category_id);
           setBrand(prod.brand || '');
           setPrice(prod.price.toString());
+          setBuyingPrice(prod.buying_price ? prod.buying_price.toString() : '');
           setOldPrice(prod.old_price ? prod.old_price.toString() : '');
           setStock(prod.stock.toString());
           setFeatured(prod.featured || false);
           setBadge(prod.badge || '');
+          const parseGallery = (galleryVal: any): string[] => {
+            if (!galleryVal) return [];
+            if (Array.isArray(galleryVal)) return galleryVal;
+            if (typeof galleryVal === 'string') {
+              const trimmed = galleryVal.trim();
+              if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                try {
+                  const parsed = JSON.parse(trimmed);
+                  if (Array.isArray(parsed)) return parsed;
+                } catch (e) {}
+              }
+              return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            return [];
+          };
           setCoverImage(prod.cover_image);
-          setGalleryInput(prod.gallery ? prod.gallery.join(', ') : '');
+          const parsedGallery = parseGallery(prod.gallery);
+          setGalleryInput(parsedGallery.join(', '));
           setShortDescription(prod.short_description || '');
           setDescription(prod.description || '');
           setTagsInput(prod.tags ? prod.tags.join(', ') : '');
@@ -115,16 +134,17 @@ export const ProductForm: React.FC = () => {
     setErrorMsg('');
     try {
       // Validate type & size
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-      if (!allowedTypes.includes(file.type)) {
-        setErrorMsg('Only JPG, PNG, WEBP, and SVG image files are allowed.');
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      const isImg = (file.type && file.type.startsWith('image/')) || (ext && ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif', 'bmp', 'tiff', 'heic', 'heif'].includes(ext));
+      if (!isImg) {
+        setErrorMsg('Only image files (JPG, PNG, JPEG, WEBP, SVG, GIF, etc.) are allowed.');
         setIsLoading(false);
         return;
       }
 
-      // Max size: 2MB
-      if (file.size > 2 * 1024 * 1024) {
-        setErrorMsg('Image size must be smaller than 2MB.');
+      // Max size: 10MB
+      if (file.size > 10 * 1024 * 1024) {
+        setErrorMsg('Image size must be smaller than 10MB.');
         setIsLoading(false);
         return;
       }
@@ -155,6 +175,65 @@ export const ProductForm: React.FC = () => {
     }
   };
 
+  // Handle local gallery images upload
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsGalleryUploading(true);
+    setErrorMsg('');
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        const isImg = (file.type && file.type.startsWith('image/')) || (ext && ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif', 'bmp', 'tiff', 'heic', 'heif'].includes(ext));
+        if (!isImg) {
+          setErrorMsg(`File type not allowed for: ${file.name}`);
+          continue;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          setErrorMsg(`File too large (Max 10MB): ${file.name}`);
+          continue;
+        }
+
+        const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, file);
+
+        if (error) {
+          setErrorMsg(`Storage upload error for ${file.name}: ${error.message}`);
+        } else if (data) {
+          const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(data.path);
+          
+          if (urlData) {
+            uploadedUrls.push(urlData.publicUrl);
+          }
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        const currentUrls = galleryInput
+          .split(',')
+          .map(url => url.trim())
+          .filter(Boolean);
+        
+        const merged = [...currentUrls, ...uploadedUrls].join(', ');
+        setGalleryInput(merged);
+        setSuccessMsg(`Uploaded ${uploadedUrls.length} gallery images successfully!`);
+        setTimeout(() => setSuccessMsg(''), 3000);
+      }
+    } catch (err: any) {
+      setErrorMsg(`Gallery upload failed: ${err.message}`);
+    } finally {
+      setIsGalleryUploading(false);
+    }
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -169,6 +248,7 @@ export const ProductForm: React.FC = () => {
     if (!coverImage.trim()) return setErrorMsg('Cover image URL or upload is required.');
 
     const parsedPrice = parseFloat(price);
+    const parsedBuyingPrice = buyingPrice ? parseFloat(buyingPrice) : undefined;
     const parsedOldPrice = oldPrice ? parseFloat(oldPrice) : undefined;
     const parsedStock = parseInt(stock) || 0;
     const parsedPriority = parseInt(priority) || 0;
@@ -190,6 +270,7 @@ export const ProductForm: React.FC = () => {
       category_id: categoryId,
       brand: brand.trim() || null,
       price: parsedPrice,
+      buying_price: parsedBuyingPrice || null,
       old_price: parsedOldPrice || null,
       stock: parsedStock,
       featured,
@@ -355,7 +436,7 @@ export const ProductForm: React.FC = () => {
             2. Pricing & Stock
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-xs font-bold text-tk-text-secondary mb-1">Selling Price (₹) *</label>
               <input
@@ -370,6 +451,18 @@ export const ProductForm: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-xs font-bold text-tk-text-secondary mb-1">Wholesale Price (₹)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={buyingPrice}
+                onChange={(e) => setBuyingPrice(e.target.value)}
+                placeholder="499.00"
+                className="w-full px-3.5 py-2 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none"
+              />
+            </div>
+ 
+            <div>
               <label className="block text-xs font-bold text-tk-text-secondary mb-1">Old Strikethrough Price (₹)</label>
               <input
                 type="number"
@@ -380,7 +473,7 @@ export const ProductForm: React.FC = () => {
                 className="w-full px-3.5 py-2 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none"
               />
             </div>
-
+ 
             <div>
               <label className="block text-xs font-bold text-tk-text-secondary mb-1">Stock Level Count</label>
               <input
@@ -391,7 +484,7 @@ export const ProductForm: React.FC = () => {
                 className="w-full px-3.5 py-2 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none"
               />
             </div>
-
+ 
             <div>
               <label className="block text-xs font-bold text-tk-text-secondary mb-1">Product Badge</label>
               <input
@@ -479,8 +572,22 @@ export const ProductForm: React.FC = () => {
               value={galleryInput}
               onChange={(e) => setGalleryInput(e.target.value)}
               placeholder="https://image1.jpg, https://image2.jpg"
-              className="w-full px-3.5 py-2 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none font-mono"
+              className="w-full px-3.5 py-2 border border-tk-border rounded-tk-input text-xs focus:ring-1 focus:ring-tk-blue-deep focus:outline-none font-mono mb-2"
             />
+            <div>
+              <label className="cursor-pointer bg-tk-blue-light hover:bg-tk-blue-strong/20 text-tk-blue-deep font-bold py-1.5 px-4 rounded-tk-input text-[11px] inline-flex items-center gap-1.5 transition-colors border border-tk-border">
+                <Upload className="h-4 w-4" />
+                <span>Upload Gallery Images</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleGalleryUpload}
+                  className="hidden"
+                />
+              </label>
+              {isGalleryUploading && <span className="text-xs text-tk-text-tertiary ml-2">Uploading gallery...</span>}
+            </div>
           </div>
         </div>
 

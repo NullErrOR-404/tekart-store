@@ -34,19 +34,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, categories })
           />
 
           {/* Badges top-left */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+          <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 z-10">
             {product.stock > 0 && product.badge && (
-              <span className="bg-tk-blue-deep text-white text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-tk-chip shadow-sm">
+              <span className="bg-tk-blue-deep text-white text-[8px] sm:text-[10px] font-bold uppercase tracking-wider py-0.5 px-1.5 sm:py-1 sm:px-2.5 rounded-tk-chip shadow-sm">
                 {product.badge}
               </span>
             )}
             {product.stock > 0 && discount > 0 && (
-              <span className="bg-tk-wa text-white text-[10px] font-bold py-1 px-2 rounded-tk-chip shadow-sm">
+              <span className="bg-tk-wa text-white text-[8px] sm:text-[10px] font-bold py-0.5 px-1 sm:py-1 sm:px-2 rounded-tk-chip shadow-sm">
                 -{discount}%
               </span>
             )}
             {product.stock > 0 && product.stock <= 3 && (
-              <span className="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-tk-chip shadow-sm animate-pulse">
+              <span className="bg-red-600 text-white text-[8px] sm:text-[10px] font-bold uppercase tracking-wider py-0.5 px-1.5 sm:py-1 sm:px-2.5 rounded-tk-chip shadow-sm animate-pulse">
                 Selling Fast
               </span>
             )}

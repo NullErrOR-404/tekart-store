@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { supabase, type Product, type Category } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
+import { replaceEmojis } from '@/lib/emoji';
 
 export const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -61,7 +62,8 @@ export const CategoryPage: React.FC = () => {
             .order('priority', { ascending: true });
             
           if (prodData) {
-            setProducts(prodData);
+            const activeProds = prodData.filter((p: Product) => !p.tags || !p.tags.includes('archived'));
+            setProducts(activeProds);
           } else {
             setProducts([]);
           }
@@ -136,7 +138,7 @@ export const CategoryPage: React.FC = () => {
         
         <div className="space-y-2 text-center md:text-left">
           <div className="flex items-center justify-center md:justify-start gap-2">
-            <span className="text-3xl md:text-4xl">{category.icon}</span>
+            <span className="text-3xl md:text-4xl flex items-center justify-center">{replaceEmojis(category.icon || '')}</span>
             <h1 className="font-display font-bold text-3xl md:text-4xl text-tk-text-primary">
               {category.name}
             </h1>
